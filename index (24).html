@@ -1,0 +1,974 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CRM 直售會員競賽戰報</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&display=swap');
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Noto Sans TC',sans-serif;background:#f7f5f2;color:#1e1a16;min-height:100vh;overflow-x:hidden}
+
+/* ── HEADER ── */
+.wr-header{background:#fff;padding:18px 24px 14px;border-bottom:1px solid #ede8e0;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px}
+.hdr-left{}
+.wr-eyebrow{font-size:10px;letter-spacing:5px;color:#c0544a;font-weight:700;margin-bottom:5px}
+.wr-title{font-size:22px;font-weight:900;color:#1e1a16;letter-spacing:1px}
+.wr-subtitle{font-size:11px;color:#b0a090;margin-top:4px}
+.meta-strip{display:flex;gap:8px;flex-wrap:wrap}
+.meta-pill{background:#fff8f6;border:1.5px solid #f0d8d4;border-radius:10px;padding:8px 16px;text-align:center;min-width:76px}
+.meta-pill span{display:block;font-size:10px;color:#c0544a;font-weight:700;letter-spacing:.5px;margin-bottom:2px}
+.meta-pill strong{display:block;font-size:20px;font-weight:900;color:#1e1a16;line-height:1}
+
+/* ── NAV TABS ── */
+.nav-bar{background:#fff;border-bottom:1px solid #ede8e0;overflow-x:auto;white-space:nowrap;scrollbar-width:none}
+.nav-bar::-webkit-scrollbar{display:none}
+.nav-inner{display:inline-flex;padding:0 16px;min-width:100%;align-items:stretch}
+.nav-btn{padding:12px 16px;font-size:13px;font-family:'Noto Sans TC',sans-serif;font-weight:500;color:#b0a090;background:transparent;border:none;border-bottom:3px solid transparent;margin-bottom:-1px;cursor:pointer;transition:all .15s;white-space:nowrap;letter-spacing:.3px}
+.nav-btn.active{color:#c0544a;border-bottom-color:#c0544a;font-weight:700}
+.nav-btn:hover:not(.active){color:#1e1a16}
+.nav-sep{width:1px;background:#ede8e0;margin:8px 8px}
+.sub-bar{background:#fdf8f5;border-bottom:1px solid #ede8e0;padding:8px 20px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.sub-label{font-size:11px;color:#c0544a;font-weight:700;letter-spacing:1px;margin-right:4px}
+.sub-btn{padding:5px 14px;font-size:12px;font-family:'Noto Sans TC',sans-serif;font-weight:500;color:#b0a090;background:#fff;border:1.5px solid #ede8e0;border-radius:20px;cursor:pointer;transition:all .15s;white-space:nowrap}
+.sub-btn.active{color:#c0544a;border-color:#f0c0b8;background:#fff8f6;font-weight:700}
+.sub-btn:hover:not(.active){color:#1e1a16;border-color:#d0c8c0}
+
+/* ── CONTENT ── */
+.content{padding:20px;max-width:1100px;margin:0 auto;overflow:visible}
+.tab-pane{display:none}.tab-pane.active{display:block}
+
+/* ── STAT CARDS ── */
+.stat-row{display:grid;gap:12px;margin-bottom:22px}
+.stat-row-4{grid-template-columns:repeat(4,1fr)}
+.stat-row-3{grid-template-columns:repeat(3,1fr)}
+.stat-card{background:#fff;border:1.5px solid #ede8e0;border-radius:12px;padding:16px 12px;text-align:center}
+.stat-val{font-size:28px;font-weight:900;color:#c0544a;line-height:1}
+.stat-lbl{font-size:10px;color:#b0a090;margin-top:6px;letter-spacing:.5px}
+
+/* ── PODIUM ── */
+.podium-section{background:linear-gradient(135deg,#fff8f6 0%,#fff5f0 50%,#fffbf5 100%);border-radius:16px;border:1.5px solid #f0d8d0;padding:28px 20px 0;margin-bottom:10px;position:relative;overflow:hidden}
+.podium-section::before{content:'';position:absolute;top:0;left:0;right:0;height:4px;background:linear-gradient(90deg,#e8604a,#f0a060,#e8c040)}
+.podium-row{display:flex;align-items:flex-end;justify-content:center;gap:16px;flex-wrap:wrap}
+.rank-group{display:flex;flex-direction:column;align-items:center}
+.rank-group-row{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-bottom:6px}
+.p-item{display:flex;flex-direction:column;align-items:center;opacity:0;transform:translateY(18px);animation:pIn .45s ease forwards}
+.p-item:nth-child(1){animation-delay:.05s}
+.p-item:nth-child(2){animation-delay:.14s}
+.p-item:nth-child(3){animation-delay:.24s}
+.p-item:nth-child(4){animation-delay:.32s}
+.p-item:nth-child(5){animation-delay:.38s}
+@keyframes pIn{to{opacity:1;transform:translateY(0)}}
+
+/* 冠軍最大最亮，亞季軍依序縮小 */
+.p-avatar{border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:900;margin-bottom:8px;position:relative;flex-shrink:0}
+.p-avatar.r1{width:80px;height:80px;font-size:28px;background:linear-gradient(135deg,#e85840,#f07850);color:#fff;box-shadow:0 6px 20px rgba(232,88,64,.35);border:4px solid #ffc0b0}
+.p-avatar.r2{width:56px;height:56px;font-size:19px;background:linear-gradient(135deg,#e89040,#f0b060);color:#fff;box-shadow:0 4px 14px rgba(232,144,64,.3);border:3px solid #ffd8a0}
+.p-avatar.r3{width:46px;height:46px;font-size:16px;background:linear-gradient(135deg,#d4a030,#e8c050);color:#fff;box-shadow:0 3px 10px rgba(212,160,48,.28);border:3px solid #f0e090}
+.p-avatar.r1.multi{width:62px;height:62px;font-size:20px}
+.p-avatar.r2.multi{width:46px;height:46px;font-size:15px}
+.p-avatar.r3.multi{width:38px;height:38px;font-size:13px}
+.crown{position:absolute;top:-18px;font-size:19px;animation:cf 2s ease-in-out infinite;filter:drop-shadow(0 2px 4px rgba(0,0,0,.15))}
+@keyframes cf{0%,100%{transform:translateY(0) rotate(-5deg)}50%{transform:translateY(-5px) rotate(5deg)}}
+
+.p-name{font-size:13px;font-weight:700;color:#1e1a16;margin-bottom:2px;text-align:center;max-width:100px;line-height:1.3}
+.p-name.champ{font-size:16px;font-weight:900;color:#e85840}
+.p-unit{font-size:10px;color:#b0a090;margin-bottom:3px;text-align:center;max-width:100px;line-height:1.4}
+.p-score{font-size:12px;font-weight:700;color:#b0a090;margin-bottom:5px;text-align:center}
+.p-score.champ{font-size:14px;color:#e85840}
+.p-badge{font-size:10px;font-weight:700;padding:4px 12px;border-radius:20px;margin-bottom:10px;letter-spacing:.5px;white-space:nowrap}
+.pb1{background:#fdf0ee;color:#e85840;border:1.5px solid #f8c0b0}
+.pb2{background:#fdf5e8;color:#c87020;border:1.5px solid #f0d098}
+.pb3{background:#fdf9e0;color:#a08010;border:1.5px solid #e8d870}
+.p-block{border-radius:8px 8px 0 0;width:84px;display:flex;align-items:flex-start;justify-content:center;padding-top:10px;font-size:20px;font-weight:900;flex-shrink:0}
+.pb-1{background:#feeee8;color:#e85840;border-top:4px solid #e85840}
+.pb-2{background:#fef5e0;color:#c87020;border-top:4px solid #e89040}
+.pb-3{background:#fefbe0;color:#a08010;border-top:4px solid #d4a030}
+.ph-1{height:100px}.ph-2{height:70px}.ph-3{height:50px}
+.rank-blocks{display:flex;gap:6px;justify-content:center;flex-wrap:wrap}
+
+/* ── CHEER STRIP ── */
+.cheer-strip{display:flex;justify-content:center;gap:8px;padding:12px 0 8px;flex-wrap:wrap}
+.cheer-tag{background:#fff8f6;border:1.5px solid #f8d0c8;border-radius:20px;padding:5px 14px;font-size:11px;color:#e85840;font-weight:700;animation:popIn .4s ease forwards;opacity:0;letter-spacing:.5px}
+@keyframes popIn{to{opacity:1}from{opacity:0;transform:scale(.88)}}
+
+/* ── SECT LABEL ── */
+.sect-label{font-size:10px;letter-spacing:4px;color:#c0544a;font-weight:700;margin:22px 0 12px;display:flex;align-items:center;gap:10px}
+.sect-label::before,.sect-label::after{content:'';flex:1;height:1px;background:#ede8e0}
+
+/* ── SEARCH BAR ── */
+.search-bar{margin-bottom:14px;position:relative}
+.search-bar input{width:100%;background:#fff;border:1.5px solid #ede8e0;border-radius:10px;color:#1e1a16;padding:10px 14px 10px 38px;font-size:13px;font-family:'Noto Sans TC',sans-serif;outline:none;transition:border-color .15s}
+.search-bar input:focus{border-color:#c0544a}
+.search-bar input::placeholder{color:#c8b8a8}
+.search-icon{position:absolute;left:12px;top:50%;transform:translateY(-50%);color:#c8b8a8;font-size:14px;pointer-events:none}
+
+/* ── TABLE ── */
+.tbl-wrap{overflow-x:auto;border-radius:12px;border:1.5px solid #ede8e0}
+.tbl-wrap::-webkit-scrollbar{height:6px}
+.tbl-wrap::-webkit-scrollbar-track{background:#f5f0ea;border-radius:3px}
+.tbl-wrap::-webkit-scrollbar-thumb{background:#e0c8b8;border-radius:3px}
+.tbl-wrap::-webkit-scrollbar-thumb:hover{background:#c0a898}
+.sticky-col{position:sticky;left:0;z-index:2;background:#fff}
+.sticky-col-2{position:sticky;left:60px;z-index:2;background:#fff}
+thead .sticky-col{background:#fff8f6;z-index:3}
+thead .sticky-col-2{background:#fff8f6;z-index:3}
+tr.r1 .sticky-col,tr.r1 .sticky-col-2{background:#fff}
+tr.r2 .sticky-col,tr.r2 .sticky-col-2{background:#fff}
+tr.r3 .sticky-col,tr.r3 .sticky-col-2{background:#fff}
+tr:hover .sticky-col,tr:hover .sticky-col-2{background:#fff5f0}
+table{width:100%;border-collapse:collapse;font-size:13px;background:#fff}
+thead tr{background:#fff8f6}
+th{color:#c0544a;font-weight:700;padding:10px 10px;text-align:left;font-size:11px;letter-spacing:.5px;white-space:nowrap;border-bottom:1.5px solid #f0d8d4}
+td{padding:10px 10px;border-bottom:1px solid #f5f0ea;white-space:nowrap;color:#2a2018}
+tr.r1 td{background:#fff}
+tr.r1 td:first-child{border-left:4px solid #e85840}
+tr.r2 td{background:#fff}
+tr.r2 td:first-child{border-left:4px solid #e89040}
+tr.r3 td{background:#fff}
+tr.r3 td:first-child{border-left:4px solid #d4a030}
+tr:not(.r1):not(.r2):not(.r3):nth-child(even) td{background:#fdfaf7}
+tr:hover td{background:#fff5f0}
+.r-num{font-size:14px;font-weight:900;color:#1e1a16;min-width:24px;display:inline-block;text-align:center}
+.r-name{font-weight:700;color:#1e1a16}
+.r-score{font-size:15px;font-weight:900;color:#c0544a}
+.badge-reach{background:#fff0ee;color:#e85840;font-size:10px;padding:3px 10px;border-radius:20px;font-weight:700;border:1px solid #f8c8c0;white-space:nowrap}
+.badge-no{background:#f7f5f2;color:#c0b098;font-size:10px;padding:3px 10px;border-radius:20px;border:1px solid #e8e0d8;white-space:nowrap}
+.mini-bar{height:5px;background:#f5ede8;border-radius:3px;overflow:hidden;margin-top:4px;min-width:60px}
+.mini-fill{height:100%;border-radius:3px;background:linear-gradient(90deg,#e85840,#f0a060);animation:bgrow .9s ease forwards;transform-origin:left;transform:scaleX(0)}
+@keyframes bgrow{to{transform:scaleX(1)}}
+
+/* ── AWARD PAGE ── */
+.award-wrap{max-width:760px;margin:0 auto}
+.award-block{background:#fff;border:1.5px solid #ede8e0;border-radius:14px;padding:20px;margin-bottom:14px}
+.award-block-title{font-size:12px;font-weight:700;letter-spacing:3px;color:#c0544a;margin-bottom:14px;display:flex;align-items:center;gap:8px}
+.award-block-title::before,.award-block-title::after{content:'';flex:1;height:1px;background:#f0d8d4}
+.award-row{display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid #f5f0ea}
+.award-row:last-child{border-bottom:none}
+.award-medal{font-size:22px;width:36px;text-align:center;flex-shrink:0}
+.award-info{flex:1}
+.award-name{font-size:15px;font-weight:900;color:#1e1a16;margin-bottom:2px}
+.award-unit{font-size:11px;color:#b0a090}
+.award-count{font-size:22px;font-weight:900;color:#c0544a;text-align:right}
+.award-count span{font-size:11px;font-weight:400;color:#b0a090;margin-left:2px}
+.award-title-tag{display:inline-block;font-size:11px;font-weight:700;padding:3px 10px;border-radius:20px;margin-bottom:2px}
+.tt-gold{background:#fff0ee;color:#e85840;border:1px solid #f8c8c0}
+.tt-silver{background:#fff5e8;color:#c87020;border:1px solid #f0d098}
+.tt-bronze{background:#fffae0;color:#a08010;border:1px solid #e8d870}
+.award-vacant{color:#c0b098;font-style:italic;padding:8px 0;font-size:13px}
+
+/* ── RULES ── */
+.rules-wrap{max-width:860px;margin:0 auto}
+.rules-hero{background:#fff8f6;border:1.5px solid #f0d8d4;border-radius:14px;padding:22px 24px;text-align:center;margin-bottom:18px;position:relative;overflow:hidden}
+.rules-hero::before{content:'';position:absolute;top:0;left:0;right:0;height:4px;background:linear-gradient(90deg,#e8604a,#f0a060,#e8c040)}
+.rules-hero-title{font-size:20px;font-weight:900;color:#c0544a;letter-spacing:2px;margin-bottom:6px}
+.rules-hero-sub{font-size:13px;color:#4a3828;margin-bottom:3px;font-weight:500}
+.rules-hero-note{font-size:11px;color:#b0a090;letter-spacing:.5px}
+.rules-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:18px}
+.rules-card{background:#fff;border:1.5px solid #ede8e0;border-radius:12px;padding:16px}
+.rules-card-icon{font-size:20px;margin-bottom:8px}
+.rules-card-title{font-size:13px;font-weight:700;color:#1e1a16;margin-bottom:10px;padding-bottom:8px;border-bottom:1.5px solid #f0d8d4}
+.rules-card-body{display:flex;flex-direction:column;gap:8px}
+.rule-item{display:flex;align-items:flex-start;gap:8px;font-size:12px;color:#4a3828;line-height:1.7}
+.rule-num{background:#c0544a;color:#fff;border-radius:50%;width:20px;height:20px;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;flex-shrink:0;margin-top:2px}
+.rule-tip{font-size:11px;color:#8a7060;background:#fff8f4;border-radius:8px;padding:8px 12px;line-height:1.8;border-left:3px solid #f0c8a0}
+.rules-section-title{font-size:10px;letter-spacing:4px;color:#c0544a;font-weight:700;margin:0 0 12px;display:flex;align-items:center;gap:10px}
+.rules-section-title::before,.rules-section-title::after{content:'';flex:1;height:1px;background:#ede8e0}
+.rules-rank-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:18px}
+.rules-rank-card{background:#fff;border:1.5px solid #ede8e0;border-radius:12px;padding:14px}
+.rules-rank-card.personal{border-top:3px solid #e85840}
+.rules-rank-card.dept{border-top:3px solid #e89040}
+.rrk-header{display:flex;align-items:center;gap:8px;margin-bottom:10px;padding-bottom:8px;border-bottom:1px solid #f5f0ea}
+.rrk-icon{font-size:18px}
+.rrk-title{font-size:13px;font-weight:700;color:#1e1a16}
+.rrk-row{display:flex;align-items:center;gap:8px;font-size:12px;margin-bottom:4px}
+.rrk-type{border-radius:20px;padding:2px 10px;font-size:10px;font-weight:700;flex-shrink:0}
+.rrk-type.monthly{background:#fff5e8;color:#c87020;border:1px solid #f0d098}
+.rrk-type.total{background:#fff0ee;color:#c0544a;border:1px solid #f8c8c0}
+.rrk-desc{color:#4a3828;font-size:12px}
+.rrk-note{font-size:10px;color:#c0b098;padding-left:52px;margin-top:-2px;margin-bottom:4px}
+.rules-prize-tabs{display:flex;gap:8px;margin-bottom:14px}
+.prize-tab-btn{padding:8px 22px;font-size:12px;font-family:'Noto Sans TC',sans-serif;font-weight:700;border-radius:20px;border:1.5px solid #ede8e0;background:#fff;color:#b0a090;cursor:pointer;transition:all .15s}
+.prize-tab-btn.active{background:#c0544a;color:#fff;border-color:#c0544a}
+.prize-tab-btn:hover:not(.active){border-color:#c0544a;color:#c0544a}
+.prize-pane{display:none}.prize-pane.active{display:block}
+.prize-section-label{font-size:10px;font-weight:700;color:#c0544a;letter-spacing:3px;margin:16px 0 10px;display:flex;align-items:center;gap:8px}
+.prize-section-label::before,.prize-section-label::after{content:'';flex:1;height:1px;background:#ede8e0}
+.prize-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.prize-card{background:#fff;border:1.5px solid #ede8e0;border-radius:12px;padding:16px}
+.prize-card.gold{border-top:3px solid #e85840}
+.prize-card.silver{border-top:3px solid #e89040}
+.prize-card.bronze{border-top:3px solid #d4a030}
+.prize-rank{font-size:13px;font-weight:700;color:#1e1a16;margin-bottom:8px}
+.prize-item{font-size:11px;color:#6a5040;padding-left:14px;position:relative;line-height:1.8}
+.prize-item::before{content:'·';position:absolute;left:4px;color:#c0a888;font-size:14px;line-height:1.4}
+
+/* ── MISC ── */
+.loading{text-align:center;padding:48px;color:#c0544a;font-size:13px;letter-spacing:2px;font-weight:700}
+.error-box{background:#fff0ee;border:1.5px solid #f8c8c0;border-radius:10px;padding:16px;color:#a03828;font-size:13px;margin:16px 0;line-height:1.7}
+.empty{text-align:center;padding:32px;color:#c8b8a8;font-size:13px;letter-spacing:1px}
+.wr-footer{text-align:center;padding:16px;font-size:11px;color:#c8b8a8;letter-spacing:1px;border-top:1px solid #ede8e0;background:#fff;margin-top:16px}
+.update-note{font-size:11px;color:#b0a090;text-align:right;margin-bottom:10px;letter-spacing:.3px}
+
+@media(max-width:600px){
+  .stat-row-4{grid-template-columns:repeat(2,1fr)}
+  .wr-header{flex-direction:column;align-items:flex-start}
+  .meta-strip{justify-content:flex-start}
+  .rules-grid,.rules-rank-grid{grid-template-columns:1fr}
+  .prize-grid{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+
+<div class="wr-header">
+  <div class="hdr-left">
+    
+    <div class="wr-title">CRM 直售會員競賽戰報</div>
+    <div class="wr-subtitle" id="update-time">資料載入中...</div>
+  </div>
+  <div class="meta-strip">
+    <div class="meta-pill"><span>活動期間</span><strong>06–08月</strong></div>
+    <div class="meta-pill"><span>總參賽</span><strong id="hdr-total">—</strong></div>
+    <div class="meta-pill"><span>總達標</span><strong id="hdr-reach">—</strong></div>
+  </div>
+</div>
+
+<div class="nav-bar">
+  <div class="nav-inner">
+    <button class="nav-btn active" onclick="switchMainTab('personal',this)">個人排名</button>
+    <button class="nav-btn" onclick="switchMainTab('dept',this)">部門排名</button>
+    <div class="nav-sep"></div>
+    <button class="nav-btn" onclick="switchMainTab('award',this)">得獎公告</button>
+    <button class="nav-btn" onclick="switchMainTab('detail',this)">資料不完整名單</button>
+    <button class="nav-btn" onclick="switchMainTab('rules',this)">比賽規則</button>
+  </div>
+</div>
+
+<!-- 個人排名子選單 -->
+<div class="sub-bar" id="sub-personal">
+  <span class="sub-label">期間</span>
+  <button class="sub-btn active" onclick="switchSubTab('personal','total-personal',this)">總排名</button>
+  <button class="sub-btn" onclick="switchSubTab('personal','m6-personal',this)">6月</button>
+  <button class="sub-btn" onclick="switchSubTab('personal','m7-personal',this)">7月</button>
+  <button class="sub-btn" onclick="switchSubTab('personal','m8-personal',this)">8月</button>
+</div>
+<!-- 部門排名子選單 -->
+<div class="sub-bar" id="sub-dept" style="display:none">
+  <span class="sub-label">期間</span>
+  <button class="sub-btn active" onclick="switchSubTab('dept','total-dept',this)">總排名</button>
+  <button class="sub-btn" onclick="switchSubTab('dept','m6-dept',this)">6月</button>
+  <button class="sub-btn" onclick="switchSubTab('dept','m7-dept',this)">7月</button>
+  <button class="sub-btn" onclick="switchSubTab('dept','m8-dept',this)">8月</button>
+</div>
+
+<div class="content">
+  <div id="main-loading" class="loading">資料載入中，請稍候...</div>
+  <div id="main-error" class="error-box" style="display:none"></div>
+
+  <!-- 個人總排名 -->
+  <div id="tab-total-personal" class="tab-pane active">
+    <div class="stat-row stat-row-4" id="tp-stats"></div>
+    <div class="sect-label">總排名頒獎台</div>
+    <div class="podium-section" id="tp-podium"></div>
+    <div class="cheer-strip" id="tp-cheer"></div>
+    <div class="sect-label">完整排名</div>
+    <div class="search-bar"><span class="search-icon">🔍</span><input type="text" id="tp-search" placeholder="搜尋姓名 / 單位 / 部門..."></div>
+    <div class="tbl-wrap"><table><thead><tr>
+      <th style="width:44px;text-align:center">排名</th><th>處</th><th>部</th><th>區域</th><th>單位</th>
+      <th>業務姓名</th><th style="text-align:right">新增會員數</th><th style="text-align:right">資料完整會員數</th><th style="text-align:right">資料不完整會員數</th>
+    </tr></thead><tbody id="tp-tbody"></tbody></table></div>
+  </div>
+
+  <!-- 部門總排名 -->
+  <div id="tab-total-dept" class="tab-pane">
+    <div class="stat-row stat-row-3" id="td-stats"></div>
+    <div class="sect-label">部門總排名頒獎台</div>
+    <div class="podium-section" id="td-podium"></div>
+    <div class="sect-label">完整排名</div>
+    <div class="search-bar"><span class="search-icon">🔍</span><input type="text" id="td-search" placeholder="搜尋單位 / 部門 / 區域..."></div>
+    <div class="tbl-wrap"><table><thead><tr>
+      <th style="width:44px;text-align:center">名次</th><th>部</th><th>區域</th><th>單位</th>
+      <th style="text-align:right">年度目標</th><th style="text-align:right">新增會員數</th><th style="text-align:right">資料完整會員數</th><th style="text-align:right">資料不完整會員數</th><th style="text-align:right">達成比率</th>
+    </tr></thead><tbody id="td-tbody"></tbody></table></div>
+  </div>
+
+  <!-- 6月個人 -->
+  <div id="tab-m6-personal" class="tab-pane">
+    <div class="stat-row stat-row-4" id="m6p-stats"></div>
+    <div class="sect-label">6月個人頒獎台</div>
+    <div class="podium-section" id="m6p-podium"></div>
+    <div class="cheer-strip" id="m6p-cheer"></div>
+    <div class="sect-label">完整排名</div>
+    <div class="search-bar"><span class="search-icon">🔍</span><input type="text" id="m6p-search" placeholder="搜尋姓名 / 單位 / 部門..."></div>
+    <div class="tbl-wrap"><table><thead><tr>
+      <th style="width:44px;text-align:center">排名</th><th>處</th><th>部</th><th>區域</th><th>單位</th>
+      <th>業務姓名</th><th style="text-align:right">新增會員數</th><th style="text-align:right">資料完整會員數</th><th style="text-align:right">資料不完整會員數</th><th>是否達標</th>
+    </tr></thead><tbody id="m6p-tbody"></tbody></table></div>
+  </div>
+
+  <!-- 6月部門 -->
+  <div id="tab-m6-dept" class="tab-pane">
+    <div class="stat-row stat-row-3" id="m6d-stats"></div>
+    <div class="sect-label">6月部門頒獎台</div>
+    <div class="podium-section" id="m6d-podium"></div>
+    <div class="sect-label">完整排名</div>
+    <div class="search-bar"><span class="search-icon">🔍</span><input type="text" id="m6d-search" placeholder="搜尋單位 / 部門 / 區域..."></div>
+    <div class="tbl-wrap"><table><thead><tr>
+      <th style="width:44px;text-align:center">名次</th><th>部</th><th>區域</th><th>單位</th>
+      <th style="text-align:right">年度目標</th><th style="text-align:right">新增會員數</th><th style="text-align:right">資料完整會員數</th><th style="text-align:right">資料不完整會員數</th><th style="text-align:right">達成比率</th>
+    </tr></thead><tbody id="m6d-tbody"></tbody></table></div>
+  </div>
+
+  <!-- 7月個人 -->
+  <div id="tab-m7-personal" class="tab-pane">
+    <div class="stat-row stat-row-4" id="m7p-stats"></div>
+    <div class="sect-label">7月個人頒獎台</div>
+    <div class="podium-section" id="m7p-podium"></div>
+    <div class="cheer-strip" id="m7p-cheer"></div>
+    <div class="sect-label">完整排名</div>
+    <div class="search-bar"><span class="search-icon">🔍</span><input type="text" id="m7p-search" placeholder="搜尋姓名 / 單位 / 部門..."></div>
+    <div class="tbl-wrap"><table><thead><tr>
+      <th style="width:44px;text-align:center">排名</th><th>處</th><th>部</th><th>區域</th><th>單位</th>
+      <th>業務姓名</th><th style="text-align:right">新增會員數</th><th style="text-align:right">資料完整會員數</th><th style="text-align:right">資料不完整會員數</th><th>是否達標</th>
+    </tr></thead><tbody id="m7p-tbody"></tbody></table></div>
+  </div>
+
+  <!-- 7月部門 -->
+  <div id="tab-m7-dept" class="tab-pane">
+    <div class="stat-row stat-row-3" id="m7d-stats"></div>
+    <div class="sect-label">7月部門頒獎台</div>
+    <div class="podium-section" id="m7d-podium"></div>
+    <div class="sect-label">完整排名</div>
+    <div class="search-bar"><span class="search-icon">🔍</span><input type="text" id="m7d-search" placeholder="搜尋單位 / 部門 / 區域..."></div>
+    <div class="tbl-wrap"><table><thead><tr>
+      <th style="width:44px;text-align:center">名次</th><th>部</th><th>區域</th><th>單位</th>
+      <th style="text-align:right">年度目標</th><th style="text-align:right">新增會員數</th><th style="text-align:right">資料完整會員數</th><th style="text-align:right">資料不完整會員數</th><th style="text-align:right">達成比率</th>
+    </tr></thead><tbody id="m7d-tbody"></tbody></table></div>
+  </div>
+
+  <!-- 8月個人 -->
+  <div id="tab-m8-personal" class="tab-pane">
+    <div class="stat-row stat-row-4" id="m8p-stats"></div>
+    <div class="sect-label">8月個人頒獎台</div>
+    <div class="podium-section" id="m8p-podium"></div>
+    <div class="cheer-strip" id="m8p-cheer"></div>
+    <div class="sect-label">完整排名</div>
+    <div class="search-bar"><span class="search-icon">🔍</span><input type="text" id="m8p-search" placeholder="搜尋姓名 / 單位 / 部門..."></div>
+    <div class="tbl-wrap"><table><thead><tr>
+      <th style="width:44px;text-align:center">排名</th><th>處</th><th>部</th><th>區域</th><th>單位</th>
+      <th>業務姓名</th><th style="text-align:right">新增會員數</th><th style="text-align:right">資料完整會員數</th><th style="text-align:right">資料不完整會員數</th><th>是否達標</th>
+    </tr></thead><tbody id="m8p-tbody"></tbody></table></div>
+  </div>
+
+  <!-- 8月部門 -->
+  <div id="tab-m8-dept" class="tab-pane">
+    <div class="stat-row stat-row-3" id="m8d-stats"></div>
+    <div class="sect-label">8月部門頒獎台</div>
+    <div class="podium-section" id="m8d-podium"></div>
+    <div class="sect-label">完整排名</div>
+    <div class="search-bar"><span class="search-icon">🔍</span><input type="text" id="m8d-search" placeholder="搜尋單位 / 部門 / 區域..."></div>
+    <div class="tbl-wrap"><table><thead><tr>
+      <th style="width:44px;text-align:center">名次</th><th>部</th><th>區域</th><th>單位</th>
+      <th style="text-align:right">年度目標</th><th style="text-align:right">新增會員數</th><th style="text-align:right">資料完整會員數</th><th style="text-align:right">資料不完整會員數</th><th style="text-align:right">達成比率</th>
+    </tr></thead><tbody id="m8d-tbody"></tbody></table></div>
+  </div>
+
+  <!-- 得獎公告 -->
+  <div id="tab-award" class="tab-pane">
+    <div class="award-wrap" id="award-content"></div>
+  </div>
+
+  <!-- 資料不完整名單 -->
+  <div id="tab-detail" class="tab-pane">
+    <div class="search-bar"><span class="search-icon">🔍</span><input type="text" id="detail-search" placeholder="搜尋業務姓名 / 單位 / 部門..."></div>
+    <div style="width:100%;overflow-x:auto;-webkit-overflow-scrolling:touch;border-radius:12px;border:1.5px solid #ede8e0;display:block">
+      <table style="border-collapse:collapse;font-size:12px;background:#fff;width:max-content;min-width:100%">
+        <thead>
+          <tr style="background:#fff8f6">
+            <th style="padding:10px 10px;color:#c0544a;font-weight:700;font-size:11px;white-space:nowrap;border-bottom:1.5px solid #f0d8d4;text-align:left">處</th>
+            <th style="padding:10px 10px;color:#c0544a;font-weight:700;font-size:11px;white-space:nowrap;border-bottom:1.5px solid #f0d8d4;text-align:left">部</th>
+            <th style="padding:10px 10px;color:#c0544a;font-weight:700;font-size:11px;white-space:nowrap;border-bottom:1.5px solid #f0d8d4;text-align:left">區域</th>
+            <th style="padding:10px 10px;color:#c0544a;font-weight:700;font-size:11px;white-space:nowrap;border-bottom:1.5px solid #f0d8d4;text-align:left">單位</th>
+            <th style="padding:10px 10px;color:#c0544a;font-weight:700;font-size:11px;white-space:nowrap;border-bottom:1.5px solid #f0d8d4;text-align:left;position:sticky;left:0;background:#fff8f6;z-index:2">業務姓名</th>
+            <th style="padding:10px 10px;color:#c0544a;font-weight:700;font-size:11px;white-space:nowrap;border-bottom:1.5px solid #f0d8d4;text-align:left">註冊日期</th>
+            <th style="padding:10px 10px;color:#c0544a;font-weight:700;font-size:11px;white-space:nowrap;border-bottom:1.5px solid #f0d8d4;text-align:left">會員編號</th>
+            <th style="padding:10px 10px;color:#c0544a;font-weight:700;font-size:11px;white-space:nowrap;border-bottom:1.5px solid #f0d8d4;text-align:left">會員狀態</th>
+            <th style="padding:10px 10px;color:#c0544a;font-weight:700;font-size:11px;white-space:nowrap;border-bottom:1.5px solid #f0d8d4;text-align:center">中文姓</th>
+            <th style="padding:10px 10px;color:#c0544a;font-weight:700;font-size:11px;white-space:nowrap;border-bottom:1.5px solid #f0d8d4;text-align:center">中文名</th>
+            <th style="padding:10px 10px;color:#c0544a;font-weight:700;font-size:11px;white-space:nowrap;border-bottom:1.5px solid #f0d8d4;text-align:left">生日</th>
+            <th style="padding:10px 10px;color:#c0544a;font-weight:700;font-size:11px;white-space:nowrap;border-bottom:1.5px solid #f0d8d4;text-align:center">會員聯絡資訊-電話</th>
+            <th style="padding:10px 10px;color:#c0544a;font-weight:700;font-size:11px;white-space:nowrap;border-bottom:1.5px solid #f0d8d4;text-align:center">會員聯絡資訊-mail</th>
+            <th style="padding:10px 10px;color:#c0544a;font-weight:700;font-size:11px;white-space:nowrap;border-bottom:1.5px solid #f0d8d4;text-align:center">會員帳號設定-電話</th>
+            <th style="padding:10px 10px;color:#c0544a;font-weight:700;font-size:11px;white-space:nowrap;border-bottom:1.5px solid #f0d8d4;text-align:center">會員帳號設定-mail</th>
+          </tr>
+        </thead>
+        <tbody id="detail-tbody"><tr><td colspan="15" style="text-align:center;padding:28px;color:#c8b8a8">載入中...</td></tr></tbody>
+      </table>
+    </div>
+    <div id="detail-count" style="padding:10px;text-align:right;font-size:11px;color:#b0a090"></div>
+  </div>
+
+  <!-- 比賽規則 -->
+  <div id="tab-rules" class="tab-pane">
+    <div class="rules-wrap">
+      <div class="rules-hero">
+        <div class="rules-hero-title">2026 CRM 會員競賽</div>
+        <div class="rules-hero-sub">活動期間：2026/06/01 – 08/31</div>
+        <div class="rules-hero-note">CRM 每日 9:30 前更新前 1 日結果</div>
+      </div>
+      <div class="rules-grid">
+        <div class="rules-card">
+          <div class="rules-card-icon">🎯</div>
+          <div class="rules-card-title">成功邀請會員定義</div>
+          <div class="rules-card-body">
+            <div class="rule-item"><span class="rule-num">1</span>於活動期間內，透過業務專屬 QR code 註冊</div>
+            <div class="rule-item"><span class="rule-num">2</span>填寫姓名、生日、聯絡 email、手機，並驗證手機或 Email（二擇一）</div>
+            <div class="rule-tip">符合以上 2 個條件方計入成功人數</div>
+          </div>
+        </div>
+        <div class="rules-card">
+          <div class="rules-card-icon">📅</div>
+          <div class="rules-card-title">月排名結算規則</div>
+          <div class="rules-card-body">
+            <div class="rule-item"><span class="rule-num">!</span>會員須於當月 5 號前補齊資料，才可計入該月排名</div>
+            <div class="rule-tip">例：06/07 註冊，07/06 補齊 → 不計入 6 月排名，但仍計入<b>總排名</b></div>
+          </div>
+        </div>
+      </div>
+      <div class="rules-section-title">排名制度</div>
+      <div class="rules-rank-grid">
+        <div class="rules-rank-card personal">
+          <div class="rrk-header"><span class="rrk-icon">👤</span><span class="rrk-title">個人排名</span></div>
+          <div class="rrk-row"><span class="rrk-type monthly">月排名</span><span class="rrk-desc">冠軍 1 名、亞軍 2 名、季軍 3 名</span></div>
+          <div class="rrk-note">須達當月低標 30 人，始有角逐資格</div>
+          <div class="rrk-row"><span class="rrk-type total">總排名</span><span class="rrk-desc">冠軍 1 名、亞軍 2 名、季軍 3 名</span></div>
+          <div class="rrk-note">2026/09/10 公告得獎名單</div>
+        </div>
+        <div class="rules-rank-card dept">
+          <div class="rrk-header"><span class="rrk-icon">🏢</span><span class="rrk-title">部門排名</span></div>
+          <div class="rrk-row"><span class="rrk-type monthly">月排名</span><span class="rrk-desc">冠軍 1 名、亞軍 1 名、季軍 1 名</span></div>
+          <div class="rrk-note">每月 10 號公告上月得獎名單</div>
+          <div class="rrk-row"><span class="rrk-type total">總排名</span><span class="rrk-desc">冠軍 1 名、亞軍 1 名、季軍 1 名</span></div>
+          <div class="rrk-note">2026/09/10 公告得獎名單</div>
+        </div>
+      </div>
+      <div class="rules-section-title">獎勵說明</div>
+      <div class="rules-prize-tabs">
+        <button class="prize-tab-btn active" onclick="switchPrize('pp',this)">個人獎</button>
+        <button class="prize-tab-btn" onclick="switchPrize('dp',this)">部門獎</button>
+      </div>
+      <div id="pp" class="prize-pane active">
+        <div class="prize-section-label">總排名</div>
+        <div class="prize-grid">
+          <div class="prize-card gold"><div class="prize-rank">🥇 總冠軍 1 名</div><div class="prize-item">7-11 禮券 5,000 元</div><div class="prize-item">機場貴賓室雙人券 3 張</div><div class="prize-item">臺鐵禮賓室點心券 3 張</div></div>
+          <div class="prize-card silver"><div class="prize-rank">🥈 總亞軍 2 名</div><div class="prize-item">7-11 禮券 3,000 元</div><div class="prize-item">機場貴賓室雙人券 2 張</div><div class="prize-item">臺鐵禮賓室點心券 2 張</div></div>
+          <div class="prize-card bronze"><div class="prize-rank">🥉 總季軍 3 名</div><div class="prize-item">7-11 禮券 2,000 元</div><div class="prize-item">機場貴賓室雙人券 1 張</div><div class="prize-item">臺鐵禮賓室點心券 1 張</div></div>
+        </div>
+        <div class="prize-section-label">月排名（須滿 30 人/月）</div>
+        <div class="prize-grid">
+          <div class="prize-card gold"><div class="prize-rank">🥇 月冠軍 1 名</div><div class="prize-item">7-11 禮券 500 元</div><div class="prize-item">機場貴賓室雙人券 1 張</div></div>
+          <div class="prize-card silver"><div class="prize-rank">🥈 月亞軍 2 名</div><div class="prize-item">7-11 禮券 300 元</div><div class="prize-item">臺鐵禮賓室飲品券 2 杯</div></div>
+          <div class="prize-card bronze"><div class="prize-rank">🥉 月季軍 3 名</div><div class="prize-item">7-11 禮券 200 元</div><div class="prize-item">臺鐵禮賓室點心券 1 張</div></div>
+        </div>
+      </div>
+      <div id="dp" class="prize-pane">
+        <div class="prize-section-label">總排名</div>
+        <div class="prize-grid">
+          <div class="prize-card gold"><div class="prize-rank">🥇 總冠軍 1 名</div><div class="prize-item">7-11 禮券 5,000 元</div><div class="prize-item">機場貴賓室雙人券 3 張</div><div class="prize-item">臺鐵禮賓室點心券 3 張</div></div>
+          <div class="prize-card silver"><div class="prize-rank">🥈 總亞軍 1 名</div><div class="prize-item">7-11 禮券 3,000 元</div><div class="prize-item">機場貴賓室雙人券 2 張</div><div class="prize-item">臺鐵禮賓室點心券 2 張</div></div>
+          <div class="prize-card bronze"><div class="prize-rank">🥉 總季軍 1 名</div><div class="prize-item">7-11 禮券 2,000 元</div><div class="prize-item">機場貴賓室雙人券 1 張</div><div class="prize-item">臺鐵禮賓室點心券 1 張</div></div>
+        </div>
+        <div class="prize-section-label">月排名</div>
+        <div class="prize-grid">
+          <div class="prize-card gold"><div class="prize-rank">🥇 月冠軍 1 名</div><div class="prize-item">7-11 禮券 1,500 元</div></div>
+          <div class="prize-card silver"><div class="prize-rank">🥈 月亞軍 1 名</div><div class="prize-item">7-11 禮券 1,000 元</div></div>
+          <div class="prize-card bronze"><div class="prize-rank">🥉 月季軍 1 名</div><div class="prize-item">7-11 禮券 800 元</div></div>
+        </div>
+      </div>
+      <div class="rules-grid" style="margin-top:16px">
+        <div class="rules-card"><div class="rules-card-icon">📢</div><div class="rules-card-title">得獎公告時間</div><div class="rules-card-body"><div class="rule-item"><span class="rule-num">月</span>每月 10 號公告上月前 15 名</div><div class="rule-item"><span class="rule-num">總</span>2026/09/10 公告總冠亞季軍</div></div></div>
+        <div class="rules-card"><div class="rules-card-icon">🎁</div><div class="rules-card-title">獎勵發放時間</div><div class="rules-card-body"><div class="rule-item"><span class="rule-num">!</span>隔月 20 號前發送至單位主管轉交</div><div class="rule-tip">遇休假日順延 ✦ 票券效期自發放當月起算 3 個月</div></div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="wr-footer">CRM-Vivian 製作 ✦ 每日自動更新 ✦ 問題請聯繫 #9172</div>
+
+<script>
+const SHEETS_ID = '1yKDbSDiFa3GJLzgHbrMWw5dr3Nj0LktZLGE9YcYsJIw';
+const CHEERS = ['加油！衝刺！','冠軍就在眼前！','每位業務都是英雄！','資料完整，業績滿分！','雄獅出征，勢不可擋！','努力的你最閃亮！','今天的汗水，明天的掌聲！'];
+
+let detailAll = [];
+
+const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzSQMZYAJdfZashXM8adxjqKY1gDqJQDWCT6oTpynVVzilx2knWL7c0CD2_TeFh7Ymw3Q/exec';
+
+// 快取：一次抓所有工作表
+let _cache = null;
+
+async function fetchAll() {
+  if (_cache) return _cache;
+  const url = `${APPS_SCRIPT_URL}?all=1&t=${Date.now()}`;
+  const res = await fetch(url);
+  const json = await res.json();
+  if (json.error) throw new Error(json.error);
+  _cache = json;
+  return _cache;
+}
+
+async function fetchSheet(name) {
+  const all = await fetchAll();
+  const data = all[name];
+  if (!data) return [];
+  if (data.error) throw new Error(data.error);
+  if (data.raw) return data.rows;
+  return data.rows || [];
+}
+
+// ── 解析排名欄位 ──
+function parseRank(v) {
+  if (!v) return 999;
+  const s = String(v).trim();
+  if (s.includes('冠軍')) return 1;
+  if (s.includes('亞軍')) return 2;
+  if (s.includes('季軍')) return 3;
+  // 「第X名」格式
+  const mth = s.match(/第(\d+)名/);
+  if (mth) return parseInt(mth[1]);
+  const n = parseInt(s);
+  return isNaN(n) ? 999 : n;
+}
+
+// 取得排名顯示文字
+function getRankLabel(v, prefix) {
+  if (!v) return '';
+  const s = String(v).trim();
+  // 已含總/月前綴
+  if (s.includes('總冠軍')) return '總冠軍';
+  if (s.includes('總亞軍')) return '總亞軍';
+  if (s.includes('總季軍')) return '總季軍';
+  // 月份冠亞季（如「6月冠軍🏆」）
+  const mMatch = s.match(/(\d+)月(冠軍|亞軍|季軍)/);
+  if (mMatch) return mMatch[1] + '月' + mMatch[2];
+  // 冠亞季 + prefix（如「總」「6月」）
+  const p = prefix || '';
+  if (s.includes('冠軍')) return p + '冠軍';
+  if (s.includes('亞軍')) return p + '亞軍';
+  if (s.includes('季軍')) return p + '季軍';
+  // 數字排名
+  const nth = s.match(/(\d+)/);
+  if (nth) return '第' + nth[1] + '名';
+  return '';
+}
+
+// 取得單位顯示（雄獅|高雄 → 高雄，雄獅 → 獅）
+function getUnitInitial(unit) {
+  if (!unit) return '?';
+  const parts = unit.split('|');
+  if (parts.length >= 2) {
+    return parts[1].slice(0, 2);
+  }
+  return unit.slice(0, 1);
+}
+
+// ── 解析達標欄位 ──
+function parseReach(v) {
+  if (!v) return false;
+  const s = String(v);
+  return s.includes('達標') || s.includes('達成') || s.includes('TRUE');
+}
+
+// ── 建立 Podium（支援同分並列）──
+function buildPodium(sorted, nameKey, unitKey, scoreKey, containerId, isPersonal, podiumPrefix='') {
+  const container = document.getElementById(containerId);
+  if (!sorted.length) { container.innerHTML = '<div class="empty">暫無資料</div>'; return; }
+
+  // 依排名分組
+  const groups = [];
+  let i = 0;
+  while (i < sorted.length) {
+    const rk = parseRank(sorted[i]['排名(依據完整完整資料排名)'] || sorted[i]['排名'] || '');
+    if (rk > 3) break;
+    const group = { rank: rk, people: [], origIdx: rk - 1 };
+    while (i < sorted.length && parseRank(sorted[i]['排名(依據完整完整資料排名)'] || sorted[i]['排名'] || '') === rk) {
+      group.people.push(sorted[i]); i++;
+    }
+    groups.push(group);
+  }
+  if (!groups.length) { container.innerHTML = '<div class="empty">暫無頒獎台資料</div>'; return; }
+
+  // 亞左冠中季右
+  const order = groups.length >= 3 ? [groups[1], groups[0], groups[2]] :
+                groups.length === 2 ? [groups[1], groups[0]] : [groups[0]];
+
+  const rc = ['r1', 'r2', 'r3'];
+  const bc = ['pb1', 'pb2', 'pb3'];
+  const blc = ['pb-1', 'pb-2', 'pb-3'];
+  const phc = ['ph-1', 'ph-2', 'ph-3'];
+  // 從第一筆資料的排名欄位取得標籤
+  const getLbl = (grp) => {
+    const rankVal = grp.people[0]['排名(依據完整完整資料排名)'] || '';
+    const label = getRankLabel(rankVal, podiumPrefix || '');
+    if (label) return label;
+    return ['冠軍','亞軍','季軍'][grp.origIdx] || '';
+  };
+
+  let html = '<div class="podium-row">';
+  order.forEach(grp => {
+    const oi = grp.origIdx;
+    const multi = grp.people.length > 1;
+    const label = getLbl(grp);
+    html += '<div class="rank-group"><div class="rank-group-row">';
+    grp.people.forEach(p => {
+      const rawUnit = p[nameKey] || '?';
+      const init = nameKey === '單位' ? getUnitInitial(rawUnit) : rawUnit.slice(0, 1);
+      const isCrown = oi === 0;
+      const isC = oi === 0;
+      html += `<div class="p-item">
+        <div class="p-avatar ${rc[oi]}${multi ? ' multi' : ''}">${isCrown ? '<div class="crown">👑</div>' : ''}${init}</div>
+        <div class="p-name${isC ? ' champ' : ''}">${p[nameKey] || ''}</div>
+        <div class="p-unit">${p[unitKey] || ''}</div>
+        <div class="p-score${isC ? ' champ' : ''}">完整 ${p[scoreKey] || 0} 人</div>
+      </div>`;
+    });
+    html += '</div>';
+    html += `<div class="p-badge ${bc[oi]}">${label}${multi ? ' ×' + grp.people.length : ''}</div>`;
+    html += '<div class="rank-blocks">';
+    grp.people.forEach(() => { html += `<div class="p-block ${blc[oi]} ${phc[oi]}">${grp.rank}</div>`; });
+    html += '</div></div>';
+  });
+  html += '</div>';
+  container.innerHTML = html;
+}
+
+// ── 修正 buildPodium 排名標籤 ──
+const MONTH_MAP = {'m6':'6月','m7':'7月','m8':'8月','total':'總'};
+
+
+function renderPersonalTable(data, tbodyId, searchId, showReach=true, prefix="") {
+  const maxC = Math.max(...data.map(r => Number(r['資料完整會員數'] || 0)), 1);
+  const render = (rows) => {
+    document.getElementById(tbodyId).innerHTML = rows.length ? rows.map(r => {
+      const rk = parseRank(r['排名(依據完整完整資料排名)'] || '');
+      const rkClass = rk === 1 ? 'r1' : rk === 2 ? 'r2' : rk === 3 ? 'r3' : '';
+      const rankLabel = getRankLabel(r['排名(依據完整完整資料排名)'] || '', prefix);
+      const medal = rk === 1 ? '🥇' : rk === 2 ? '🥈' : rk === 3 ? '🥉' : '';
+      const reach = parseReach(r['是否達標'] || '');
+      const pct = Math.round(Number(r['資料完整會員數'] || 0) / maxC * 100);
+      return `<tr class="${rkClass}">
+        <td style="text-align:center;white-space:nowrap"><span class="r-num">${rk <= 3 ? medal : ''}${rankLabel}</span></td>
+        <td>${r['處'] || ''}</td><td>${r['部'] || ''}</td><td>${r['區域'] || ''}</td><td>${r['單位'] || ''}</td>
+        <td style="font-weight:700;color:#1e1a16;white-space:nowrap;position:sticky;left:0;background:#fff;z-index:1">${r['業務姓名'] || ''}</td>
+        <td style="text-align:right;color:#b0a090">${r['新增會員數'] || 0}</td>
+        <td style="text-align:right"><span class="r-score">${r['資料完整會員數'] || 0}</span></td>
+        <td style="text-align:right;color:#c8b8a8">${r['資料不完整會員數'] || 0}</td>
+        ${showReach ? `<td><span class="${reach ? 'badge-reach' : 'badge-no'}">${reach ? '達標' : '未達標'}</span></td>` : ''}
+      </tr>`;
+    }).join('') : `<tr><td colspan="${showReach ? 10 : 9}" class="empty">暫無資料</td></tr>`;
+  };
+  render(data);
+  document.getElementById(searchId).oninput = function () {
+    const kw = this.value.trim();
+    render(kw ? data.filter(r =>
+      (r['業務姓名'] || '').includes(kw) ||
+      (r['單位'] || '').includes(kw) ||
+      (r['部'] || '').includes(kw) ||
+      (r['區域'] || '').includes(kw) ||
+      (r['處'] || '').includes(kw)
+    ) : data);
+  };
+}
+
+// ── 渲染部門排名表 ──
+function renderDeptTable(data, tbodyId, searchId, prefix='') {
+  const maxC = Math.max(...data.map(r => Number(r['資料完整會員數'] || 0)), 1);
+  const render = (rows) => {
+    document.getElementById(tbodyId).innerHTML = rows.length ? rows.map(r => {
+      const rk = parseRank(r['排名(依據完整完整資料排名)'] || '');
+      const rkClass = rk === 1 ? 'r1' : rk === 2 ? 'r2' : rk === 3 ? 'r3' : '';
+      const rankLabel = getRankLabel(r['排名(依據完整完整資料排名)'] || '', prefix);
+      const medal = rk === 1 ? '🥇' : rk === 2 ? '🥈' : rk === 3 ? '🥉' : '';
+      const reach = parseReach(r['是否達標'] || '');
+      const pct = Math.round(Number(r['資料完整會員數'] || 0) / maxC * 100);
+      const target = r['年度目標'] || '—';
+      const rate = r['達成比率'] || '—';
+      return `<tr class="${rkClass}">
+        <td style="text-align:center;white-space:nowrap"><span class="r-num">${rk <= 3 ? medal : ''}${rankLabel}</span></td>
+        <td>${r['部'] || ''}</td><td>${r['區域'] || ''}</td><td class="r-name">${r['單位'] || ''}</td>
+        <td style="text-align:right;color:#b0a090">${target}</td>
+        <td style="text-align:right;color:#b0a090">${r['新增會員數'] || 0}</td>
+        <td style="text-align:right"><span class="r-score">${r['資料完整會員數'] || 0}</span></td>
+        <td style="text-align:right;color:#c8b8a8">${r['資料不完整會員數'] || 0}</td>
+        <td style="text-align:right;font-weight:700;color:#c0544a">${rate}</td>
+        <td><span class="${reach ? 'badge-reach' : 'badge-no'}">${reach ? '達標' : '未達標'}</span></td>
+      </tr>`;
+    }).join('') : '<tr><td colspan="10" class="empty">暫無資料</td></tr>';
+  };
+  render(data);
+  document.getElementById(searchId).oninput = function () {
+    const kw = this.value.trim();
+    render(kw ? data.filter(r =>
+      (r['單位'] || '').includes(kw) ||
+      (r['部'] || '').includes(kw) ||
+      (r['區域'] || '').includes(kw)
+    ) : data);
+  };
+}
+
+// ── 渲染統計卡片（個人）──
+function renderPersonalStats(data, statsId) {
+  const reach = data.filter(r => parseReach(r['是否達標'] || '')).length;
+  document.getElementById(statsId).innerHTML = `
+    <div class="stat-card"><div class="stat-val">${data.length}</div><div class="stat-lbl">參賽業務</div></div>
+    <div class="stat-card"><div class="stat-val">${data.reduce((a, r) => a + Number(r['新增會員數'] || 0), 0)}</div><div class="stat-lbl">總新增會員</div></div>
+    <div class="stat-card"><div class="stat-val">${data.reduce((a, r) => a + Number(r['資料完整會員數'] || 0), 0)}</div><div class="stat-lbl">資料完整</div></div>
+    <div class="stat-card"><div class="stat-val">${reach}</div><div class="stat-lbl">達標人數</div></div>`;
+}
+
+// ── 渲染統計卡片（部門）──
+function renderDeptStats(data, statsId) {
+  const reach = data.filter(r => parseReach(r['是否達標'] || '')).length;
+  document.getElementById(statsId).innerHTML = `
+    <div class="stat-card"><div class="stat-val">${data.length}</div><div class="stat-lbl">參賽單位</div></div>
+    <div class="stat-card"><div class="stat-val">${data.reduce((a, r) => a + Number(r['新增會員數'] || 0), 0)}</div><div class="stat-lbl">總新增會員</div></div>
+    <div class="stat-card"><div class="stat-val">${reach}</div><div class="stat-lbl">達標單位</div></div>`;
+}
+
+// ── 渲染加油標語 ──
+function renderCheer(cheerId) {
+  document.getElementById(cheerId).innerHTML =
+    CHEERS.sort(() => Math.random() - .5).slice(0, 4)
+    .map((c, i) => `<div class="cheer-tag" style="animation-delay:${i * .12 + .4}s">${c}</div>`).join('');
+}
+
+// ── 渲染得獎公告（接收 raw 二維陣列）──
+function renderAward(rows) {
+  const container = document.getElementById('award-content');
+  if (!rows.length) { container.innerHTML = '<div class="empty">暫無公告資料</div>'; return; }
+
+  const getTitleTag = (t) => {
+    if (t.includes('冠')) return `<div class="award-title-tag tt-gold">${t}</div>`;
+    if (t.includes('亞')) return `<div class="award-title-tag tt-silver">${t}</div>`;
+    if (t.includes('季')) return `<div class="award-title-tag tt-bronze">${t}</div>`;
+    return `<div class="award-title-tag" style="background:#f5f0ea;color:#8a7060">${t}</div>`;
+  };
+  const getMedal = (t) => t.includes('冠') ? '🥇' : t.includes('亞') ? '🥈' : t.includes('季') ? '🥉' : '🏅';
+  const MONTHS = ['6月','7月','8月','9月','10月','11月','12月'];
+
+  let html = '';
+  let currentMonth = '';
+  let totalHtml = '';
+  let monthBlocks = {}; // { '6月': [...rows] }
+
+  rows.forEach(r => {
+    const col0 = (r[0] || '').trim();
+    const col1 = (r[1] || '').trim();
+    const col2 = (r[2] || '').trim();
+    const col3 = (r[3] || '').trim();
+
+    // 月份標題列（如 "6月"）
+    if (MONTHS.includes(col0) && !col1) {
+      currentMonth = col0;
+      if (!monthBlocks[currentMonth]) monthBlocks[currentMonth] = [];
+      return;
+    }
+
+    // 總冠亞季軍
+    if (col0.includes('總') && (col0.includes('冠') || col0.includes('亞') || col0.includes('季'))) {
+      if (col1 && col1 !== '從缺') {
+        totalHtml += `<div class="award-row">
+          <div class="award-medal">${getMedal(col0)}</div>
+          <div class="award-info">${getTitleTag(col0)}<div class="award-name">${col1}</div><div class="award-unit">${col2}</div></div>
+          <div class="award-count">${col3}<span>人</span></div>
+        </div>`;
+      }
+      return;
+    }
+
+    // 月冠亞季軍
+    if (currentMonth && (col0.includes('月冠') || col0.includes('月亞') || col0.includes('月季'))) {
+      monthBlocks[currentMonth].push({ title: col0, name: col1, unit: col2, count: col3 });
+    }
+  });
+
+  if (totalHtml) {
+    html += `<div class="award-block"><div class="award-block-title">總冠亞季軍</div>${totalHtml}</div>`;
+  }
+
+  MONTHS.forEach(mo => {
+    if (!monthBlocks[mo] || !monthBlocks[mo].length) return;
+    html += `<div class="award-block"><div class="award-block-title">${mo}冠亞季軍</div>`;
+    monthBlocks[mo].forEach(r => {
+      if (!r.name || r.name === '從缺') {
+        html += `<div class="award-row"><div class="award-medal">${getMedal(r.title)}</div><div class="award-info">${getTitleTag(r.title)}<div class="award-vacant">從缺</div></div></div>`;
+      } else {
+        html += `<div class="award-row">
+          <div class="award-medal">${getMedal(r.title)}</div>
+          <div class="award-info">${getTitleTag(r.title)}<div class="award-name">${r.name}</div><div class="award-unit">${r.unit}</div></div>
+          <div class="award-count">${r.count}<span>人</span></div>
+        </div>`;
+      }
+    });
+    html += '</div>';
+  });
+
+  container.innerHTML = html || '<div class="empty">暫無公告資料</div>';
+}
+
+// ── 渲染明細 ──
+function renderDetail(data) {
+  const yn = v => v === 'Y' || v === '1' || v === 'TRUE';
+  const yColor = 'color:#2a7040;font-weight:700;text-align:center';
+  const nColor = 'color:#c0a090;text-align:center';
+  document.getElementById('detail-tbody').innerHTML = data.length ? data.map(r => {
+    const ok = (r['會員狀態'] || '').startsWith('1');
+    return `<tr>
+      <td>${r['處'] || ''}</td>
+      <td>${r['部'] || ''}</td>
+      <td>${r['區域'] || ''}</td>
+      <td>${r['單位'] || ''}</td>
+      <td class="r-name">${r['業務姓名'] || ''}</td>
+      <td style="color:#b0a090;font-size:11px;white-space:nowrap">${(r['註冊日期'] || '').slice(0, 10)}</td>
+      <td style="color:#c0b098;font-size:10px;white-space:nowrap">${r['會員編號'] || ''}</td>
+      <td style="white-space:nowrap"><span class="${ok ? 'badge-reach' : 'badge-no'}" style="${ok ? '' : 'background:#fff0ee;color:#c0544a;border-color:#f8c8c0'}">${r['會員狀態'] || ''}</span></td>
+      <td style="${yn(r['中文姓']) ? yColor : nColor}">${r['中文姓'] || ''}</td>
+      <td style="${yn(r['中文名']) ? yColor : nColor}">${r['中文名'] || ''}</td>
+      <td style="color:#b0a090;font-size:11px;white-space:nowrap">${r['生日'] || ''}</td>
+      <td style="${yn(r['會員聯絡資訊-電話']) ? yColor : nColor}">${r['會員聯絡資訊-電話'] || ''}</td>
+      <td style="${yn(r['會員聯絡資訊-mail']) ? yColor : nColor}">${r['會員聯絡資訊-mail'] || ''}</td>
+      <td style="${yn(r['會員帳號設定-電話']) ? yColor : nColor}">${r['會員帳號設定-電話'] || ''}</td>
+      <td style="${yn(r['會員帳號設定-mail']) ? yColor : nColor}">${r['會員帳號設定-mail'] || ''}</td>
+    </tr>`;
+  }).join('') : '<tr><td colspan="15" class="empty">暫無資料</td></tr>';
+  document.getElementById('detail-count').textContent = `共 ${data.length} 筆`;
+}
+
+
+// ── 主程式 ──
+async function init() {
+  try {
+    document.getElementById('main-loading').style.display = 'block';
+
+    // 一次請求取得所有資料（避免 Too many simultaneous invocations）
+    await fetchAll();
+    const tp     = await fetchSheet('06/01-08/31總冠軍戰報');
+    const td     = await fetchSheet('06/01-08/31部門戰報');
+    const m6p    = await fetchSheet('6月戰報');
+    const m6d    = await fetchSheet('6月部門戰報');
+    const m7p    = await fetchSheet('7月戰報');
+    const m7d    = await fetchSheet('7月部門戰報');
+    const m8p    = await fetchSheet('8月戰報');
+    const m8d    = await fetchSheet('8月部門戰報');
+    const award  = await fetchSheet('得獎公告');
+    const detail = await fetchSheet('已加入會員資料不完整清單');
+
+    document.getElementById('main-loading').style.display = 'none';
+
+    // 更新時間
+    document.getElementById('update-time').textContent = '更新時間：' + new Date().toLocaleString('zh-TW', { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' });
+
+    // Header 統計
+    const allPersonal = [...tp, ...m6p, ...m7p, ...m8p];
+    document.getElementById('hdr-total').textContent = tp.length || '—';
+    document.getElementById('hdr-reach').textContent = tp.filter(r => parseReach(r['是否達標'] || '')).length || '—';
+
+    // 總排名個人
+    renderPersonalStats(tp, 'tp-stats');
+    buildPodium(tp, '業務姓名', '單位', '資料完整會員數', 'tp-podium', true, '總');
+    renderCheer('tp-cheer');
+    renderPersonalTable(tp, 'tp-tbody', 'tp-search', false, '總');
+
+    // 總排名部門
+    renderDeptStats(td, 'td-stats');
+    buildPodium(td, '單位', '區域', '資料完整會員數', 'td-podium', false, '總');
+    renderDeptTable(td, 'td-tbody', 'td-search', '總');
+
+    // 月份個人
+    [[m6p,'m6p'],[m7p,'m7p'],[m8p,'m8p']].forEach(([data,pfx]) => {
+      renderPersonalStats(data, pfx+'-stats');
+      buildPodium(data, '業務姓名', '單位', '資料完整會員數', pfx+'-podium', true);
+      renderCheer(pfx+'-cheer');
+      renderPersonalTable(data, pfx+'-tbody', pfx+'-search');
+    });
+
+    // 月份部門
+    [[m6d,'m6d'],[m7d,'m7d'],[m8d,'m8d']].forEach(([data,pfx]) => {
+      renderDeptStats(data, pfx+'-stats');
+      buildPodium(data, '單位', '區域', '資料完整會員數', pfx+'-podium', false);
+      renderDeptTable(data, pfx+'-tbody', pfx+'-search');
+    });
+
+    // 得獎公告
+    renderAward(award);
+
+    // 明細
+    detailAll = detail;
+    renderDetail(detail);
+    document.getElementById('detail-search').oninput = function() {
+      const kw = this.value.trim();
+      renderDetail(kw ? detailAll.filter(r =>
+        (r['業務姓名']||'').includes(kw)||(r['單位']||'').includes(kw)||(r['部']||'').includes(kw)
+      ) : detailAll);
+    };
+
+  } catch(e) {
+    document.getElementById('main-loading').style.display = 'none';
+    document.getElementById('main-error').style.display = 'block';
+    document.getElementById('main-error').textContent = '資料載入失敗：' + e.message;
+  }
+
+  // 每 5 分鐘自動刷新
+  setInterval(init, 5 * 60 * 1000);
+}
+
+// 目前各主 tab 的子 tab 記憶
+const subTabMemory = { personal: 'total-personal', dept: 'total-dept' };
+
+function switchMainTab(name, btn) {
+  // 切換主 nav
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+
+  // 隱藏所有子選單
+  document.querySelectorAll('.sub-bar').forEach(b => b.style.display = 'none');
+
+  // 隱藏所有 tab pane
+  document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
+
+  if (name === 'personal') {
+    document.getElementById('sub-personal').style.display = 'flex';
+    document.getElementById('tab-' + subTabMemory.personal).classList.add('active');
+  } else if (name === 'dept') {
+    document.getElementById('sub-dept').style.display = 'flex';
+    document.getElementById('tab-' + subTabMemory.dept).classList.add('active');
+  } else {
+    document.getElementById('tab-' + name).classList.add('active');
+  }
+}
+
+function switchSubTab(mainName, tabName, btn) {
+  // 記憶子 tab
+  subTabMemory[mainName] = tabName;
+  // 切換 sub btn
+  document.querySelectorAll('#sub-' + mainName + ' .sub-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  // 切換 pane
+  document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
+  document.getElementById('tab-' + tabName).classList.add('active');
+}
+
+// 舊的 switchTab 保留相容
+function switchTab(name, btn) { switchMainTab(name, btn); }
+
+function switchPrize(name, btn) {
+  document.querySelectorAll('.prize-pane').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.prize-tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById(name).classList.add('active');
+  btn.classList.add('active');
+}
+
+init();
+</script>
+</body>
+</html>
