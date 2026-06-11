@@ -7,7 +7,7 @@
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&display=swap');
 *{box-sizing:border-box;margin:0;padding:0}
-body{font-family:'Noto Sans TC',sans-serif;background:#f7f5f2;color:#1e1a16;min-height:100vh;overflow-x:hidden}
+body{font-family:'Noto Sans TC',sans-serif;background:#f7f5f2;color:#1e1a16;min-height:100vh}
 
 /* ── HEADER ── */
 .wr-header{background:#fff;padding:18px 24px 14px;border-bottom:1px solid #ede8e0;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px}
@@ -35,7 +35,7 @@ body{font-family:'Noto Sans TC',sans-serif;background:#f7f5f2;color:#1e1a16;min-
 .sub-btn:hover:not(.active){color:#1e1a16;border-color:#d0c8c0}
 
 /* ── CONTENT ── */
-.content{padding:20px;max-width:1100px;margin:0 auto;overflow:visible}
+.content{padding:20px;max-width:1100px;margin:0 auto}
 .tab-pane{display:none}.tab-pane.active{display:block}
 
 /* ── STAT CARDS ── */
@@ -105,18 +105,6 @@ body{font-family:'Noto Sans TC',sans-serif;background:#f7f5f2;color:#1e1a16;min-
 
 /* ── TABLE ── */
 .tbl-wrap{overflow-x:auto;border-radius:12px;border:1.5px solid #ede8e0}
-.tbl-wrap::-webkit-scrollbar{height:6px}
-.tbl-wrap::-webkit-scrollbar-track{background:#f5f0ea;border-radius:3px}
-.tbl-wrap::-webkit-scrollbar-thumb{background:#e0c8b8;border-radius:3px}
-.tbl-wrap::-webkit-scrollbar-thumb:hover{background:#c0a898}
-.sticky-col{position:sticky;left:0;z-index:2;background:#fff}
-.sticky-col-2{position:sticky;left:60px;z-index:2;background:#fff}
-thead .sticky-col{background:#fff8f6;z-index:3}
-thead .sticky-col-2{background:#fff8f6;z-index:3}
-tr.r1 .sticky-col,tr.r1 .sticky-col-2{background:#fff}
-tr.r2 .sticky-col,tr.r2 .sticky-col-2{background:#fff}
-tr.r3 .sticky-col,tr.r3 .sticky-col-2{background:#fff}
-tr:hover .sticky-col,tr:hover .sticky-col-2{background:#fff5f0}
 table{width:100%;border-collapse:collapse;font-size:13px;background:#fff}
 thead tr{background:#fff8f6}
 th{color:#c0544a;font-weight:700;padding:10px 10px;text-align:left;font-size:11px;letter-spacing:.5px;white-space:nowrap;border-bottom:1.5px solid #f0d8d4}
@@ -275,8 +263,8 @@ tr:hover td{background:#fff5f0}
     <div class="sect-label">完整排名</div>
     <div class="search-bar"><span class="search-icon">🔍</span><input type="text" id="tp-search" placeholder="搜尋姓名 / 單位 / 部門..."></div>
     <div class="tbl-wrap"><table><thead><tr>
-      <th style="width:44px;text-align:center">排名</th><th>處</th><th>部</th><th>區域</th><th>單位</th>
-      <th>業務姓名</th><th style="text-align:right">新增會員數</th><th style="text-align:right">資料完整會員數</th><th style="text-align:right">資料不完整會員數</th>
+      <th style="width:44px;text-align:center">名次</th><th>處</th><th>部</th><th>區域</th><th>單位</th>
+      <th>姓名</th><th style="text-align:right">新增</th><th style="text-align:right">完整✓</th><th style="text-align:right">不完整</th><th>達標</th>
     </tr></thead><tbody id="tp-tbody"></tbody></table></div>
   </div>
 
@@ -289,7 +277,7 @@ tr:hover td{background:#fff5f0}
     <div class="search-bar"><span class="search-icon">🔍</span><input type="text" id="td-search" placeholder="搜尋單位 / 部門 / 區域..."></div>
     <div class="tbl-wrap"><table><thead><tr>
       <th style="width:44px;text-align:center">名次</th><th>部</th><th>區域</th><th>單位</th>
-      <th style="text-align:right">年度目標</th><th style="text-align:right">新增會員數</th><th style="text-align:right">資料完整會員數</th><th style="text-align:right">資料不完整會員數</th><th style="text-align:right">達成比率</th>
+      <th style="text-align:right">新增</th><th style="text-align:right">完整✓</th><th style="text-align:right">不完整</th><th>達標</th>
     </tr></thead><tbody id="td-tbody"></tbody></table></div>
   </div>
 
@@ -302,8 +290,8 @@ tr:hover td{background:#fff5f0}
     <div class="sect-label">完整排名</div>
     <div class="search-bar"><span class="search-icon">🔍</span><input type="text" id="m6p-search" placeholder="搜尋姓名 / 單位 / 部門..."></div>
     <div class="tbl-wrap"><table><thead><tr>
-      <th style="width:44px;text-align:center">排名</th><th>處</th><th>部</th><th>區域</th><th>單位</th>
-      <th>業務姓名</th><th style="text-align:right">新增會員數</th><th style="text-align:right">資料完整會員數</th><th style="text-align:right">資料不完整會員數</th><th>是否達標</th>
+      <th style="width:44px;text-align:center">名次</th><th>處</th><th>部</th><th>區域</th><th>單位</th>
+      <th>姓名</th><th style="text-align:right">新增</th><th style="text-align:right">完整✓</th><th style="text-align:right">不完整</th><th>達標</th>
     </tr></thead><tbody id="m6p-tbody"></tbody></table></div>
   </div>
 
@@ -316,7 +304,7 @@ tr:hover td{background:#fff5f0}
     <div class="search-bar"><span class="search-icon">🔍</span><input type="text" id="m6d-search" placeholder="搜尋單位 / 部門 / 區域..."></div>
     <div class="tbl-wrap"><table><thead><tr>
       <th style="width:44px;text-align:center">名次</th><th>部</th><th>區域</th><th>單位</th>
-      <th style="text-align:right">年度目標</th><th style="text-align:right">新增會員數</th><th style="text-align:right">資料完整會員數</th><th style="text-align:right">資料不完整會員數</th><th style="text-align:right">達成比率</th>
+      <th style="text-align:right">新增</th><th style="text-align:right">完整✓</th><th style="text-align:right">不完整</th><th>達標</th>
     </tr></thead><tbody id="m6d-tbody"></tbody></table></div>
   </div>
 
@@ -329,8 +317,8 @@ tr:hover td{background:#fff5f0}
     <div class="sect-label">完整排名</div>
     <div class="search-bar"><span class="search-icon">🔍</span><input type="text" id="m7p-search" placeholder="搜尋姓名 / 單位 / 部門..."></div>
     <div class="tbl-wrap"><table><thead><tr>
-      <th style="width:44px;text-align:center">排名</th><th>處</th><th>部</th><th>區域</th><th>單位</th>
-      <th>業務姓名</th><th style="text-align:right">新增會員數</th><th style="text-align:right">資料完整會員數</th><th style="text-align:right">資料不完整會員數</th><th>是否達標</th>
+      <th style="width:44px;text-align:center">名次</th><th>處</th><th>部</th><th>區域</th><th>單位</th>
+      <th>姓名</th><th style="text-align:right">新增</th><th style="text-align:right">完整✓</th><th style="text-align:right">不完整</th><th>達標</th>
     </tr></thead><tbody id="m7p-tbody"></tbody></table></div>
   </div>
 
@@ -343,7 +331,7 @@ tr:hover td{background:#fff5f0}
     <div class="search-bar"><span class="search-icon">🔍</span><input type="text" id="m7d-search" placeholder="搜尋單位 / 部門 / 區域..."></div>
     <div class="tbl-wrap"><table><thead><tr>
       <th style="width:44px;text-align:center">名次</th><th>部</th><th>區域</th><th>單位</th>
-      <th style="text-align:right">年度目標</th><th style="text-align:right">新增會員數</th><th style="text-align:right">資料完整會員數</th><th style="text-align:right">資料不完整會員數</th><th style="text-align:right">達成比率</th>
+      <th style="text-align:right">新增</th><th style="text-align:right">完整✓</th><th style="text-align:right">不完整</th><th>達標</th>
     </tr></thead><tbody id="m7d-tbody"></tbody></table></div>
   </div>
 
@@ -356,8 +344,8 @@ tr:hover td{background:#fff5f0}
     <div class="sect-label">完整排名</div>
     <div class="search-bar"><span class="search-icon">🔍</span><input type="text" id="m8p-search" placeholder="搜尋姓名 / 單位 / 部門..."></div>
     <div class="tbl-wrap"><table><thead><tr>
-      <th style="width:44px;text-align:center">排名</th><th>處</th><th>部</th><th>區域</th><th>單位</th>
-      <th>業務姓名</th><th style="text-align:right">新增會員數</th><th style="text-align:right">資料完整會員數</th><th style="text-align:right">資料不完整會員數</th><th>是否達標</th>
+      <th style="width:44px;text-align:center">名次</th><th>處</th><th>部</th><th>區域</th><th>單位</th>
+      <th>姓名</th><th style="text-align:right">新增</th><th style="text-align:right">完整✓</th><th style="text-align:right">不完整</th><th>達標</th>
     </tr></thead><tbody id="m8p-tbody"></tbody></table></div>
   </div>
 
@@ -370,7 +358,7 @@ tr:hover td{background:#fff5f0}
     <div class="search-bar"><span class="search-icon">🔍</span><input type="text" id="m8d-search" placeholder="搜尋單位 / 部門 / 區域..."></div>
     <div class="tbl-wrap"><table><thead><tr>
       <th style="width:44px;text-align:center">名次</th><th>部</th><th>區域</th><th>單位</th>
-      <th style="text-align:right">年度目標</th><th style="text-align:right">新增會員數</th><th style="text-align:right">資料完整會員數</th><th style="text-align:right">資料不完整會員數</th><th style="text-align:right">達成比率</th>
+      <th style="text-align:right">新增</th><th style="text-align:right">完整✓</th><th style="text-align:right">不完整</th><th>達標</th>
     </tr></thead><tbody id="m8d-tbody"></tbody></table></div>
   </div>
 
@@ -381,32 +369,14 @@ tr:hover td{background:#fff5f0}
 
   <!-- 資料不完整名單 -->
   <div id="tab-detail" class="tab-pane">
-    <div class="search-bar"><span class="search-icon">🔍</span><input type="text" id="detail-search" placeholder="搜尋業務姓名 / 單位 / 部門..."></div>
-    <div style="width:100%;overflow-x:auto;-webkit-overflow-scrolling:touch;border-radius:12px;border:1.5px solid #ede8e0;display:block">
-      <table style="border-collapse:collapse;font-size:12px;background:#fff;width:max-content;min-width:100%">
-        <thead>
-          <tr style="background:#fff8f6">
-            <th style="padding:10px 10px;color:#c0544a;font-weight:700;font-size:11px;white-space:nowrap;border-bottom:1.5px solid #f0d8d4;text-align:left">處</th>
-            <th style="padding:10px 10px;color:#c0544a;font-weight:700;font-size:11px;white-space:nowrap;border-bottom:1.5px solid #f0d8d4;text-align:left">部</th>
-            <th style="padding:10px 10px;color:#c0544a;font-weight:700;font-size:11px;white-space:nowrap;border-bottom:1.5px solid #f0d8d4;text-align:left">區域</th>
-            <th style="padding:10px 10px;color:#c0544a;font-weight:700;font-size:11px;white-space:nowrap;border-bottom:1.5px solid #f0d8d4;text-align:left">單位</th>
-            <th style="padding:10px 10px;color:#c0544a;font-weight:700;font-size:11px;white-space:nowrap;border-bottom:1.5px solid #f0d8d4;text-align:left;position:sticky;left:0;background:#fff8f6;z-index:2">業務姓名</th>
-            <th style="padding:10px 10px;color:#c0544a;font-weight:700;font-size:11px;white-space:nowrap;border-bottom:1.5px solid #f0d8d4;text-align:left">註冊日期</th>
-            <th style="padding:10px 10px;color:#c0544a;font-weight:700;font-size:11px;white-space:nowrap;border-bottom:1.5px solid #f0d8d4;text-align:left">會員編號</th>
-            <th style="padding:10px 10px;color:#c0544a;font-weight:700;font-size:11px;white-space:nowrap;border-bottom:1.5px solid #f0d8d4;text-align:left">會員狀態</th>
-            <th style="padding:10px 10px;color:#c0544a;font-weight:700;font-size:11px;white-space:nowrap;border-bottom:1.5px solid #f0d8d4;text-align:center">中文姓</th>
-            <th style="padding:10px 10px;color:#c0544a;font-weight:700;font-size:11px;white-space:nowrap;border-bottom:1.5px solid #f0d8d4;text-align:center">中文名</th>
-            <th style="padding:10px 10px;color:#c0544a;font-weight:700;font-size:11px;white-space:nowrap;border-bottom:1.5px solid #f0d8d4;text-align:left">生日</th>
-            <th style="padding:10px 10px;color:#c0544a;font-weight:700;font-size:11px;white-space:nowrap;border-bottom:1.5px solid #f0d8d4;text-align:center">會員聯絡資訊-電話</th>
-            <th style="padding:10px 10px;color:#c0544a;font-weight:700;font-size:11px;white-space:nowrap;border-bottom:1.5px solid #f0d8d4;text-align:center">會員聯絡資訊-mail</th>
-            <th style="padding:10px 10px;color:#c0544a;font-weight:700;font-size:11px;white-space:nowrap;border-bottom:1.5px solid #f0d8d4;text-align:center">會員帳號設定-電話</th>
-            <th style="padding:10px 10px;color:#c0544a;font-weight:700;font-size:11px;white-space:nowrap;border-bottom:1.5px solid #f0d8d4;text-align:center">會員帳號設定-mail</th>
-          </tr>
-        </thead>
-        <tbody id="detail-tbody"><tr><td colspan="15" style="text-align:center;padding:28px;color:#c8b8a8">載入中...</td></tr></tbody>
-      </table>
-    </div>
-    <div id="detail-count" style="padding:10px;text-align:right;font-size:11px;color:#b0a090"></div>
+    <div class="search-bar"><span class="search-icon">🔍</span><input type="text" id="detail-search" placeholder="搜尋姓名 / 單位 / 部門..."></div>
+    <div class="tbl-wrap"><table><thead><tr>
+      <th>處</th><th>部</th><th>區域</th><th>單位</th><th>姓名</th>
+      <th>註冊日期</th><th>狀態</th>
+      <th style="text-align:center">姓</th><th style="text-align:center">名</th>
+      <th style="text-align:center">電話</th><th style="text-align:center">Mail</th>
+    </tr></thead><tbody id="detail-tbody"></tbody></table></div>
+    <div class="empty" id="detail-count" style="padding:10px;text-align:right;font-size:11px;color:#b0a090"></div>
   </div>
 
   <!-- 比賽規則 -->
@@ -415,7 +385,7 @@ tr:hover td{background:#fff5f0}
       <div class="rules-hero">
         <div class="rules-hero-title">2026 CRM 會員競賽</div>
         <div class="rules-hero-sub">活動期間：2026/06/01 – 08/31</div>
-        <div class="rules-hero-note">CRM 每日 9:30 前更新前 1 日結果</div>
+        <div class="rules-hero-note">CRM 每日 11:00 前更新前 2 日結果</div>
       </div>
       <div class="rules-grid">
         <div class="rules-card">
@@ -502,28 +472,16 @@ const CHEERS = ['加油！衝刺！','冠軍就在眼前！','每位業務都是
 
 let detailAll = [];
 
+// ── Apps Script Web App 網址（部署後貼上）──
 const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzSQMZYAJdfZashXM8adxjqKY1gDqJQDWCT6oTpynVVzilx2knWL7c0CD2_TeFh7Ymw3Q/exec';
 
-// 快取：一次抓所有工作表
-let _cache = null;
-
-async function fetchAll() {
-  if (_cache) return _cache;
-  const url = `${APPS_SCRIPT_URL}?all=1&t=${Date.now()}`;
+async function fetchSheet(name) {
+  const url = `${APPS_SCRIPT_URL}?sheet=${encodeURIComponent(name)}&t=${Date.now()}`;
   const res = await fetch(url);
   const json = await res.json();
   if (json.error) throw new Error(json.error);
-  _cache = json;
-  return _cache;
-}
-
-async function fetchSheet(name) {
-  const all = await fetchAll();
-  const data = all[name];
-  if (!data) return [];
-  if (data.error) throw new Error(data.error);
-  if (data.raw) return data.rows;
-  return data.rows || [];
+  if (json.raw) return json.rows; // 得獎公告用 raw
+  return json.rows || [];
 }
 
 // ── 解析排名欄位 ──
@@ -533,42 +491,32 @@ function parseRank(v) {
   if (s.includes('冠軍')) return 1;
   if (s.includes('亞軍')) return 2;
   if (s.includes('季軍')) return 3;
-  // 「第X名」格式
-  const mth = s.match(/第(\d+)名/);
+  const mth = s.match(/(\d+)/);
   if (mth) return parseInt(mth[1]);
-  const n = parseInt(s);
-  return isNaN(n) ? 999 : n;
+  return 999;
 }
 
-// 取得排名顯示文字
 function getRankLabel(v, prefix) {
   if (!v) return '';
   const s = String(v).trim();
-  // 已含總/月前綴
   if (s.includes('總冠軍')) return '總冠軍';
   if (s.includes('總亞軍')) return '總亞軍';
   if (s.includes('總季軍')) return '總季軍';
-  // 月份冠亞季（如「6月冠軍🏆」）
   const mMatch = s.match(/(\d+)月(冠軍|亞軍|季軍)/);
   if (mMatch) return mMatch[1] + '月' + mMatch[2];
-  // 冠亞季 + prefix（如「總」「6月」）
   const p = prefix || '';
   if (s.includes('冠軍')) return p + '冠軍';
   if (s.includes('亞軍')) return p + '亞軍';
   if (s.includes('季軍')) return p + '季軍';
-  // 數字排名
   const nth = s.match(/(\d+)/);
   if (nth) return '第' + nth[1] + '名';
   return '';
 }
 
-// 取得單位顯示（雄獅|高雄 → 高雄，雄獅 → 獅）
 function getUnitInitial(unit) {
   if (!unit) return '?';
   const parts = unit.split('|');
-  if (parts.length >= 2) {
-    return parts[1].slice(0, 2);
-  }
+  if (parts.length >= 2) return parts[1].slice(0, 2);
   return unit.slice(0, 1);
 }
 
@@ -580,7 +528,7 @@ function parseReach(v) {
 }
 
 // ── 建立 Podium（支援同分並列）──
-function buildPodium(sorted, nameKey, unitKey, scoreKey, containerId, isPersonal, podiumPrefix='') {
+function buildPodium(sorted, nameKey, unitKey, scoreKey, containerId, isPersonal, podiumPrefix="") {
   const container = document.getElementById(containerId);
   if (!sorted.length) { container.innerHTML = '<div class="empty">暫無資料</div>'; return; }
 
@@ -588,10 +536,10 @@ function buildPodium(sorted, nameKey, unitKey, scoreKey, containerId, isPersonal
   const groups = [];
   let i = 0;
   while (i < sorted.length) {
-    const rk = parseRank(sorted[i]['排名(依據完整完整資料排名)'] || sorted[i]['排名'] || '');
+    const rk = parseRank(sorted[i]['排名(依據資料完整數據排名)'] || sorted[i]['排名'] || '');
     if (rk > 3) break;
     const group = { rank: rk, people: [], origIdx: rk - 1 };
-    while (i < sorted.length && parseRank(sorted[i]['排名(依據完整完整資料排名)'] || sorted[i]['排名'] || '') === rk) {
+    while (i < sorted.length && parseRank(sorted[i]['排名(依據資料完整數據排名)'] || sorted[i]['排名'] || '') === rk) {
       group.people.push(sorted[i]); i++;
     }
     groups.push(group);
@@ -606,9 +554,8 @@ function buildPodium(sorted, nameKey, unitKey, scoreKey, containerId, isPersonal
   const bc = ['pb1', 'pb2', 'pb3'];
   const blc = ['pb-1', 'pb-2', 'pb-3'];
   const phc = ['ph-1', 'ph-2', 'ph-3'];
-  // 從第一筆資料的排名欄位取得標籤
   const getLbl = (grp) => {
-    const rankVal = grp.people[0]['排名(依據完整完整資料排名)'] || '';
+    const rankVal = grp.people[0]['排名(依據完整完整資料排名)'] || grp.people[0]['排名(依據資料完整數據排名)'] || '';
     const label = getRankLabel(rankVal, podiumPrefix || '');
     if (label) return label;
     return ['冠軍','亞軍','季軍'][grp.origIdx] || '';
@@ -642,30 +589,27 @@ function buildPodium(sorted, nameKey, unitKey, scoreKey, containerId, isPersonal
   container.innerHTML = html;
 }
 
-// ── 修正 buildPodium 排名標籤 ──
-const MONTH_MAP = {'m6':'6月','m7':'7月','m8':'8月','total':'總'};
-
-
+// ── 渲染個人排名表 ──
 function renderPersonalTable(data, tbodyId, searchId, showReach=true, prefix="") {
   const maxC = Math.max(...data.map(r => Number(r['資料完整會員數'] || 0)), 1);
   const render = (rows) => {
     document.getElementById(tbodyId).innerHTML = rows.length ? rows.map(r => {
-      const rk = parseRank(r['排名(依據完整完整資料排名)'] || '');
+      const rk = parseRank(r['排名(依據資料完整數據排名)'] || '');
       const rkClass = rk === 1 ? 'r1' : rk === 2 ? 'r2' : rk === 3 ? 'r3' : '';
-      const rankLabel = getRankLabel(r['排名(依據完整完整資料排名)'] || '', prefix);
       const medal = rk === 1 ? '🥇' : rk === 2 ? '🥈' : rk === 3 ? '🥉' : '';
+      const rankLabel = getRankLabel(r['排名(依據完整完整資料排名)'] || r['排名(依據資料完整數據排名)'] || '', prefix || '');
       const reach = parseReach(r['是否達標'] || '');
       const pct = Math.round(Number(r['資料完整會員數'] || 0) / maxC * 100);
       return `<tr class="${rkClass}">
         <td style="text-align:center;white-space:nowrap"><span class="r-num">${rk <= 3 ? medal : ''}${rankLabel}</span></td>
         <td>${r['處'] || ''}</td><td>${r['部'] || ''}</td><td>${r['區域'] || ''}</td><td>${r['單位'] || ''}</td>
-        <td style="font-weight:700;color:#1e1a16;white-space:nowrap;position:sticky;left:0;background:#fff;z-index:1">${r['業務姓名'] || ''}</td>
+        <td class="r-name">${r['業務姓名'] || ''}</td>
         <td style="text-align:right;color:#b0a090">${r['新增會員數'] || 0}</td>
         <td style="text-align:right"><span class="r-score">${r['資料完整會員數'] || 0}</span></td>
         <td style="text-align:right;color:#c8b8a8">${r['資料不完整會員數'] || 0}</td>
-        ${showReach ? `<td><span class="${reach ? 'badge-reach' : 'badge-no'}">${reach ? '達標' : '未達標'}</span></td>` : ''}
+        <td><span class="${reach ? 'badge-reach' : 'badge-no'}">${reach ? '達標' : '未達標'}</span></td>
       </tr>`;
-    }).join('') : `<tr><td colspan="${showReach ? 10 : 9}" class="empty">暫無資料</td></tr>`;
+    }).join('') : '<tr><td colspan="10" class="empty">暫無資料</td></tr>';
   };
   render(data);
   document.getElementById(searchId).oninput = function () {
@@ -681,29 +625,25 @@ function renderPersonalTable(data, tbodyId, searchId, showReach=true, prefix="")
 }
 
 // ── 渲染部門排名表 ──
-function renderDeptTable(data, tbodyId, searchId, prefix='') {
+function renderDeptTable(data, tbodyId, searchId, prefix="") {
   const maxC = Math.max(...data.map(r => Number(r['資料完整會員數'] || 0)), 1);
   const render = (rows) => {
     document.getElementById(tbodyId).innerHTML = rows.length ? rows.map(r => {
-      const rk = parseRank(r['排名(依據完整完整資料排名)'] || '');
+      const rk = parseRank(r['排名(依據資料完整數據排名)'] || '');
       const rkClass = rk === 1 ? 'r1' : rk === 2 ? 'r2' : rk === 3 ? 'r3' : '';
-      const rankLabel = getRankLabel(r['排名(依據完整完整資料排名)'] || '', prefix);
       const medal = rk === 1 ? '🥇' : rk === 2 ? '🥈' : rk === 3 ? '🥉' : '';
+      const rankLabel = getRankLabel(r['排名(依據完整完整資料排名)'] || r['排名(依據資料完整數據排名)'] || '', prefix || '');
       const reach = parseReach(r['是否達標'] || '');
       const pct = Math.round(Number(r['資料完整會員數'] || 0) / maxC * 100);
-      const target = r['年度目標'] || '—';
-      const rate = r['達成比率'] || '—';
       return `<tr class="${rkClass}">
         <td style="text-align:center;white-space:nowrap"><span class="r-num">${rk <= 3 ? medal : ''}${rankLabel}</span></td>
         <td>${r['部'] || ''}</td><td>${r['區域'] || ''}</td><td class="r-name">${r['單位'] || ''}</td>
-        <td style="text-align:right;color:#b0a090">${target}</td>
         <td style="text-align:right;color:#b0a090">${r['新增會員數'] || 0}</td>
         <td style="text-align:right"><span class="r-score">${r['資料完整會員數'] || 0}</span></td>
         <td style="text-align:right;color:#c8b8a8">${r['資料不完整會員數'] || 0}</td>
-        <td style="text-align:right;font-weight:700;color:#c0544a">${rate}</td>
         <td><span class="${reach ? 'badge-reach' : 'badge-no'}">${reach ? '達標' : '未達標'}</span></td>
       </tr>`;
-    }).join('') : '<tr><td colspan="10" class="empty">暫無資料</td></tr>';
+    }).join('') : '<tr><td colspan="8" class="empty">暫無資料</td></tr>';
   };
   render(data);
   document.getElementById(searchId).oninput = function () {
@@ -819,8 +759,6 @@ function renderAward(rows) {
 // ── 渲染明細 ──
 function renderDetail(data) {
   const yn = v => v === 'Y' || v === '1' || v === 'TRUE';
-  const yColor = 'color:#2a7040;font-weight:700;text-align:center';
-  const nColor = 'color:#c0a090;text-align:center';
   document.getElementById('detail-tbody').innerHTML = data.length ? data.map(r => {
     const ok = (r['會員狀態'] || '').startsWith('1');
     return `<tr>
@@ -830,15 +768,15 @@ function renderDetail(data) {
       <td>${r['單位'] || ''}</td>
       <td class="r-name">${r['業務姓名'] || ''}</td>
       <td style="color:#b0a090;font-size:11px;white-space:nowrap">${(r['註冊日期'] || '').slice(0, 10)}</td>
-      <td style="color:#c0b098;font-size:10px;white-space:nowrap">${r['會員編號'] || ''}</td>
-      <td style="white-space:nowrap"><span class="${ok ? 'badge-reach' : 'badge-no'}" style="${ok ? '' : 'background:#fff0ee;color:#c0544a;border-color:#f8c8c0'}">${r['會員狀態'] || ''}</span></td>
-      <td style="${yn(r['中文姓']) ? yColor : nColor}">${r['中文姓'] || ''}</td>
-      <td style="${yn(r['中文名']) ? yColor : nColor}">${r['中文名'] || ''}</td>
-      <td style="color:#b0a090;font-size:11px;white-space:nowrap">${r['生日'] || ''}</td>
-      <td style="${yn(r['會員聯絡資訊-電話']) ? yColor : nColor}">${r['會員聯絡資訊-電話'] || ''}</td>
-      <td style="${yn(r['會員聯絡資訊-mail']) ? yColor : nColor}">${r['會員聯絡資訊-mail'] || ''}</td>
-      <td style="${yn(r['會員帳號設定-電話']) ? yColor : nColor}">${r['會員帳號設定-電話'] || ''}</td>
-      <td style="${yn(r['會員帳號設定-mail']) ? yColor : nColor}">${r['會員帳號設定-mail'] || ''}</td>
+      <td style="color:#c0b098;font-size:10px;max-width:140px;overflow:hidden;text-overflow:ellipsis">${r['會員編號'] || ''}</td>
+      <td><span class="${ok ? 'badge-reach' : 'badge-no'}" style="${ok ? '' : 'background:#fff0ee;color:#c0544a;border-color:#f8c8c0'}">${ok ? '已驗證' : '未驗證'}</span></td>
+      <td style="text-align:center;${yn(r['中文姓']) ? 'color:#2a7040;font-weight:700' : 'color:#c0a090'}">${r['中文姓'] || ''}</td>
+      <td style="text-align:center;${yn(r['中文名']) ? 'color:#2a7040;font-weight:700' : 'color:#c0a090'}">${r['中文名'] || ''}</td>
+      <td style="color:#b0a090;font-size:11px">${r['生日'] || ''}</td>
+      <td style="text-align:center;${yn(r['會員聯絡資訊-電話']) ? 'color:#2a7040;font-weight:700' : 'color:#c0a090'}">${r['會員聯絡資訊-電話'] || ''}</td>
+      <td style="text-align:center;${yn(r['會員聯絡資訊-mail']) ? 'color:#2a7040;font-weight:700' : 'color:#c0a090'}">${r['會員聯絡資訊-mail'] || ''}</td>
+      <td style="text-align:center;${yn(r['會員帳號設定-電話']) ? 'color:#2a7040;font-weight:700' : 'color:#c0a090'}">${r['會員帳號設定-電話'] || ''}</td>
+      <td style="text-align:center;${yn(r['會員帳號設定-mail']) ? 'color:#2a7040;font-weight:700' : 'color:#c0a090'}">${r['會員帳號設定-mail'] || ''}</td>
     </tr>`;
   }).join('') : '<tr><td colspan="15" class="empty">暫無資料</td></tr>';
   document.getElementById('detail-count').textContent = `共 ${data.length} 筆`;
@@ -850,8 +788,7 @@ async function init() {
   try {
     document.getElementById('main-loading').style.display = 'block';
 
-    // 一次請求取得所有資料（避免 Too many simultaneous invocations）
-    await fetchAll();
+    // 逐一讀取避免 Too many simultaneous invocations
     const tp     = await fetchSheet('06/01-08/31總冠軍戰報');
     const td     = await fetchSheet('06/01-08/31部門戰報');
     const m6p    = await fetchSheet('6月戰報');
