@@ -475,13 +475,50 @@ let detailAll = [];
 // ── Apps Script Web App 網址（部署後貼上）──
 const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzSQMZYAJdfZashXM8adxjqKY1gDqJQDWCT6oTpynVVzilx2knWL7c0CD2_TeFh7Ymw3Q/exec';
 
-async function fetchSheet(name) {
-  const url = `${APPS_SCRIPT_URL}?sheet=${encodeURIComponent(name)}&t=${Date.now()}`;
+// ── 快取機制：資料每天8:20後才更新，快取到隔天8:20 ──
+function getCacheExpiry() {
+  const now = new Date();
+  const expiry = new Date(now);
+  expiry.setHours(8, 20, 0, 0);
+  if (now >= expiry) expiry.setDate(expiry.getDate() + 1);
+  return expiry.getTime();
+}
+function getCache() {
+  try {
+    const expiry = parseInt(sessionStorage.getItem('wr_expiry') || '0');
+    if (Date.now() < expiry) {
+      const d = sessionStorage.getItem('wr_data');
+      if (d) return JSON.parse(d);
+    }
+  } catch(e) {}
+  return null;
+}
+function setCache(data) {
+  try {
+    sessionStorage.setItem('wr_data', JSON.stringify(data));
+    sessionStorage.setItem('wr_expiry', getCacheExpiry().toString());
+  } catch(e) {}
+}
+let _allData = null;
+async function fetchAll() {
+  if (_allData) return _allData;
+  const cached = getCache();
+  if (cached) { _allData = cached; return _allData; }
+  const url = `${APPS_SCRIPT_URL}?all=1&t=${Date.now()}`;
   const res = await fetch(url);
   const json = await res.json();
   if (json.error) throw new Error(json.error);
-  if (json.raw) return json.rows; // 得獎公告用 raw
-  return json.rows || [];
+  _allData = json;
+  setCache(json);
+  return _allData;
+}
+async function fetchSheet(name) {
+  const all = await fetchAll();
+  const data = all[name];
+  if (!data) return [];
+  if (data.error) throw new Error(data.error);
+  if (data.raw) return data.rows;
+  return data.rows || [];
 }
 
 // ── 解析排名欄位 ──
@@ -788,7 +825,8 @@ async function init() {
   try {
     document.getElementById('main-loading').style.display = 'block';
 
-    // 逐一讀取避免 Too many simultaneous invocations
+    // 一次抓完所有資料（快取到隔天8:20）
+    await fetchAll();
     const tp     = await fetchSheet('06/01-08/31總冠軍戰報');
     const td     = await fetchSheet('06/01-08/31部門戰報');
     const m6p    = await fetchSheet('6月戰報');
