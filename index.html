@@ -504,7 +504,6 @@ const CHEERS = ['冠軍就在眼前，直售全力向前！','衝刺時刻，排
 const DEPT_CHEERS = ['每一家門市，都是會員成長的關鍵戰場！','一店一戰力，一區一榮耀！','最後關鍵，冠軍就在眼前！','全台齊發力，會員新增拚高峰！'];
 
 let detailAll = [];
-let refreshTimer = null;
 
 const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzSQMZYAJdfZashXM8adxjqKY1gDqJQDWCT6oTpynVVzilx2knWL7c0CD2_TeFh7Ymw3Q/exec';
 
@@ -574,7 +573,7 @@ function getCell(row, aliases, fallback='') {
   const normalized = keys.map(k => [k, normKey(k)]);
   for (const name of aliases) {
     const nk = normKey(name);
-    const hit = normalized.find(([k, n]) => n === nk || n.includes(nk));
+    const hit = normalized.find(([k, n]) => n === nk || n.includes(nk) || nk.includes(n));
     if (hit) {
       const v = row[hit[0]];
       return (v === undefined || v === null) ? fallback : v;
@@ -653,16 +652,6 @@ function getRankLabel(v, prefix='') {
   return '第' + rk + '名';
 }
 
-// 月份個人獎低標：資料完整會員數滿 30 人才可顯示月冠亞季軍與上頒獎台
-function isMonthlyPersonalQualified(row) {
-  return getCompleteMembers(row) >= 30;
-}
-
-function getPlainRankLabel(rank) {
-  const rk = Number(rank);
-  return Number.isFinite(rk) && rk > 0 ? '第' + rk + '名' : '';
-}
-
 // 取得單位顯示（雄獅|高雄 → 高雄，雄獅 → 獅）
 function getUnitInitial(unit) {
   if (!unit) return '?';
@@ -686,15 +675,12 @@ function buildPodium(sorted, nameKey, unitKey, scoreKey, containerId, isPersonal
   if (!sorted.length) { container.innerHTML = '<div class="empty">暫無資料</div>'; return; }
 
   let rows = [...sorted];
-  if (options.minComplete !== undefined) {
-    rows = rows.filter(r => getCompleteMembers(r) >= options.minComplete);
-  }
-  rows.sort((a, b) => parseRank(getRankValue(a)) - parseRank(getRankValue(b)));
-
-  if (!rows.length && options.minComplete !== undefined) {
-    container.innerHTML = `<div class="empty">目前尚無資料完整會員數滿 ${options.minComplete} 人的參賽者，暫不上頒獎台</div>`;
-    return;
-  }
+  if (options.minComplete) rows = rows.filter(r => getCompleteMembers(r) >= options.minComplete);
+  rows = rows.sort((a, b) => {
+    const rankDiff = parseRank(getRankValue(a)) - parseRank(getRankValue(b));
+    if (rankDiff !== 0) return rankDiff;
+    return getCompleteMembers(b) - getCompleteMembers(a);
+  });
 
   // 依 Google Sheet 名次分組，只取前 3 名
   const groups = [];
@@ -720,7 +706,7 @@ function buildPodium(sorted, nameKey, unitKey, scoreKey, containerId, isPersonal
   const bc = ['pb1', 'pb2', 'pb3'];
   const blc = ['pb-1', 'pb-2', 'pb-3'];
   const phc = ['ph-1', 'ph-2', 'ph-3'];
-  const getLbl = (grp) => options.plainRankLabel ? getPlainRankLabel(grp.rank) : getRankLabel(getRankValue(grp.people[0]), podiumPrefix || '');
+  const getLbl = (grp) => options.plainRankLabel ? ('第' + grp.rank + '名') : getRankLabel(getRankValue(grp.people[0]), podiumPrefix || '');
 
   let html = '<div class="podium-row">';
   order.forEach(grp => {
@@ -759,30 +745,13 @@ function renderPersonalTable(data, tbodyId, searchId, showReach=true, prefix="")
   const isMonthly = prefix === '月';
   const hasAnyReached = data.some(r => parseReach(getCell(r, ['是否達標', '達標', '是否達成'], '')));
   const useSequentialMonthlyRank = isMonthly && data.length > 0 && !hasAnyReached;
-
-  const getMonthlyRankText = (row, idx) => {
-    const complete = getCompleteMembers(row);
-    const sheetRank = parseRank(getRankValue(row));
-    const rk = useSequentialMonthlyRank ? (idx + 1) : sheetRank;
-
-    // 月份個人：未滿 30 人不具備月冠亞季軍資格，只顯示第X名
-    if (isMonthly && complete < 30) return getPlainRankLabel(rk);
-
-    // 月份個人：滿 30 人才顯示月冠軍／月亞軍／月季軍
-    return getRankLabel(getRankValue(row), prefix) || getPlainRankLabel(rk);
-  };
-
-  const getMonthlyRankNumber = (row, idx) => {
-    if (useSequentialMonthlyRank) return idx + 1;
-    const rk = parseRank(getRankValue(row));
-    return rk === 999 ? idx + 1 : rk;
-  };
-
   const render = (rows) => {
     document.getElementById(tbodyId).innerHTML = rows.length ? rows.map((r, idx) => {
-      const rankText = getMonthlyRankText(r, idx);
-      const rk = getMonthlyRankNumber(r, idx);
-      const rkClass = rk === 1 ? 'r1' : rk === 2 ? 'r2' : rk === 3 ? 'r3' : '';
+      const underMonthlyThreshold = isMonthly && getCompleteMembers(r) < 30;
+      const rkFromSheet = parseRank(getRankValue(r));
+      const rk = (useSequentialMonthlyRank || underMonthlyThreshold || rkFromSheet === 999) ? (idx + 1) : rkFromSheet;
+      const rankText = (useSequentialMonthlyRank || underMonthlyThreshold || rkFromSheet === 999) ? ('第' + rk + '名') : getRankLabel(getRankValue(r), prefix);
+      const rkClass = underMonthlyThreshold ? '' : (rk === 1 ? 'r1' : rk === 2 ? 'r2' : rk === 3 ? 'r3' : '');
       const reach = parseReach(getCell(r, ['是否達標', '達標', '是否達成'], ''));
       return `<tr class="${rkClass}">
         <td style="text-align:center;white-space:nowrap"><span class="r-num">${rankText}</span></td>
@@ -882,76 +851,111 @@ function renderCheer(cheerId, isDept=false) {
     .map((c, i) => `<div class="cheer-tag" style="animation-delay:${i * .12 + .4}s">${c}</div>`).join('');
 }
 
-// ── 渲染得獎公告（接收 raw 二維陣列）──
-function renderAward(rows) {
-  const container = document.getElementById('award-content');
-  if (!rows.length) { container.innerHTML = '<div class="empty">暫無公告資料</div>'; return; }
+// ── 渲染得獎公告：總排名 + 6/7/8月，依照個人／部門規則產生 ──
+function makeAwardRow(item, title, vacantText='從缺') {
+  const medal = title.includes('冠') ? '🥇' : title.includes('亞') ? '🥈' : title.includes('季') ? '🥉' : '🏅';
+  const tagClass = title.includes('冠') ? 'tt-gold' : title.includes('亞') ? 'tt-silver' : title.includes('季') ? 'tt-bronze' : '';
+  const tag = `<div class="award-title-tag ${tagClass}">${title}</div>`;
+  if (!item) {
+    return `<div class="award-row">
+      <div class="award-medal">${medal}</div>
+      <div class="award-info">${tag}<div class="award-vacant">${vacantText}</div></div>
+      <div class="award-count">—</div>
+    </div>`;
+  }
+  const name = item.type === 'dept' ? getUnit(item.row) : getName(item.row);
+  const unit = item.type === 'dept' ? getArea(item.row) : getUnit(item.row);
+  const count = getCompleteMembers(item.row);
+  return `<div class="award-row">
+    <div class="award-medal">${medal}</div>
+    <div class="award-info">${tag}<div class="award-name">${name || ''}</div><div class="award-unit">${unit || ''}</div></div>
+    <div class="award-count">${count || 0}<span>人</span></div>
+  </div>`;
+}
 
-  const getTitleTag = (t) => {
-    if (t.includes('冠')) return `<div class="award-title-tag tt-gold">${t}</div>`;
-    if (t.includes('亞')) return `<div class="award-title-tag tt-silver">${t}</div>`;
-    if (t.includes('季')) return `<div class="award-title-tag tt-bronze">${t}</div>`;
-    return `<div class="award-title-tag" style="background:#f5f0ea;color:#8a7060">${t}</div>`;
-  };
-  const getMedal = (t) => t.includes('冠') ? '🥇' : t.includes('亞') ? '🥈' : t.includes('季') ? '🥉' : '🏅';
-  const MONTHS = ['6月','7月','8月','9月','10月','11月','12月'];
+function pickAwardWinners(data, type, quotas, options={}) {
+  const minComplete = options.minComplete || 0;
+  const rows = [...(data || [])]
+    .filter(r => getCompleteMembers(r) >= minComplete)
+    .sort((a, b) => {
+      const rankDiff = parseRank(getRankValue(a)) - parseRank(getRankValue(b));
+      if (rankDiff !== 0) return rankDiff;
+      return getCompleteMembers(b) - getCompleteMembers(a);
+    });
+  const result = {1: [], 2: [], 3: []};
+  rows.forEach(row => {
+    const rk = parseRank(getRankValue(row));
+    if (![1, 2, 3].includes(rk)) return;
+    const limit = quotas[rk] || 0;
+    if (result[rk].length < limit) result[rk].push({row, type});
+  });
+  return result;
+}
+
+function renderAwardBlock(title, note, personalWinners, deptWinners, isMonthly=false) {
+  const titles = isMonthly
+    ? {1:'🏆月冠軍', 2:'🥈月亞軍', 3:'🥉月季軍'}
+    : {1:'🏆總冠軍', 2:'🥈總亞軍', 3:'🥉總季軍'};
+  const pQuota = {1:1, 2:2, 3:3};
+  const vacantMonthly = '未達月低標 30 人，從缺';
+  let html = `<div class="award-block"><div class="award-block-title">${title}</div>`;
+  if (note) html += `<div style="font-size:11px;color:#b0a090;text-align:center;margin:-4px 0 14px;line-height:1.6">${note}</div>`;
+
+  html += `<div style="font-size:11px;font-weight:700;letter-spacing:2px;color:#c0544a;margin:8px 0 6px">個人排名</div>`;
+  [1, 2, 3].forEach(rk => {
+    const people = personalWinners[rk] || [];
+    for (let i = 0; i < pQuota[rk]; i++) html += makeAwardRow(people[i], titles[rk], isMonthly ? vacantMonthly : '尚未公告');
+  });
+
+  html += `<div style="font-size:11px;font-weight:700;letter-spacing:2px;color:#c0544a;margin:16px 0 6px">部門排名</div>`;
+  [1, 2, 3].forEach(rk => {
+    const units = deptWinners[rk] || [];
+    html += makeAwardRow(units[0], titles[rk], '尚未公告');
+  });
+  html += '</div>';
+  return html;
+}
+
+function renderAward(data) {
+  const container = document.getElementById('award-content');
+  const tp = data.tp || [], td = data.td || [];
+  const m6p = data.m6p || [], m6d = data.m6d || [];
+  const m7p = data.m7p || [], m7d = data.m7d || [];
+  const m8p = data.m8p || [], m8d = data.m8d || [];
+
+  const personalTotalQuota = {1:1, 2:2, 3:3};
+  const personalMonthQuota = {1:1, 2:2, 3:3};
+  const deptQuota = {1:1, 2:1, 3:1};
 
   let html = '';
-  let currentMonth = '';
-  let totalHtml = '';
-  let monthBlocks = {}; // { '6月': [...rows] }
-
-  rows.forEach(r => {
-    const col0 = (r[0] || '').trim();
-    const col1 = (r[1] || '').trim();
-    const col2 = (r[2] || '').trim();
-    const col3 = (r[3] || '').trim();
-
-    // 月份標題列（如 "6月"）
-    if (MONTHS.includes(col0) && !col1) {
-      currentMonth = col0;
-      if (!monthBlocks[currentMonth]) monthBlocks[currentMonth] = [];
-      return;
-    }
-
-    // 總冠亞季軍
-    if (col0.includes('總') && (col0.includes('冠') || col0.includes('亞') || col0.includes('季'))) {
-      if (col1 && col1 !== '從缺') {
-        totalHtml += `<div class="award-row">
-          <div class="award-medal">${getMedal(col0)}</div>
-          <div class="award-info">${getTitleTag(col0)}<div class="award-name">${col1}</div><div class="award-unit">${col2}</div></div>
-          <div class="award-count">${col3}<span>人</span></div>
-        </div>`;
-      }
-      return;
-    }
-
-    // 月冠亞季軍
-    if (currentMonth && (col0.includes('月冠') || col0.includes('月亞') || col0.includes('月季'))) {
-      monthBlocks[currentMonth].push({ title: col0, name: col1, unit: col2, count: col3 });
-    }
-  });
-
-  if (totalHtml) {
-    html += `<div class="award-block"><div class="award-block-title">總冠亞季軍</div>${totalHtml}</div>`;
-  }
-
-  MONTHS.forEach(mo => {
-    if (!monthBlocks[mo] || !monthBlocks[mo].length) return;
-    html += `<div class="award-block"><div class="award-block-title">${mo}冠亞季軍</div>`;
-    monthBlocks[mo].forEach(r => {
-      if (!r.name || r.name === '從缺') {
-        html += `<div class="award-row"><div class="award-medal">${getMedal(r.title)}</div><div class="award-info">${getTitleTag(r.title)}<div class="award-vacant">從缺</div></div></div>`;
-      } else {
-        html += `<div class="award-row">
-          <div class="award-medal">${getMedal(r.title)}</div>
-          <div class="award-info">${getTitleTag(r.title)}<div class="award-name">${r.name}</div><div class="award-unit">${r.unit}</div></div>
-          <div class="award-count">${r.count}<span>人</span></div>
-        </div>`;
-      }
-    });
-    html += '</div>';
-  });
+  html += renderAwardBlock(
+    '總排名',
+    '個人：總冠軍 1 名、總亞軍 2 名、總季軍 3 名｜部門：總冠軍 1 名、總亞軍 1 名、總季軍 1 名｜2026/09/10 公告得獎名單',
+    pickAwardWinners(tp, 'personal', personalTotalQuota),
+    pickAwardWinners(td, 'dept', deptQuota),
+    false
+  );
+  html += renderAwardBlock(
+    '6月',
+    '個人月排名須達月低標門檻 30 名；部門月排名取月冠軍、月亞軍、月季軍各 1 名。',
+    pickAwardWinners(m6p, 'personal', personalMonthQuota, {minComplete:30}),
+    pickAwardWinners(m6d, 'dept', deptQuota),
+    true
+  );
+  html += renderAwardBlock(
+    '7月',
+    '個人月排名須達月低標門檻 30 名；部門月排名取月冠軍、月亞軍、月季軍各 1 名。',
+    pickAwardWinners(m7p, 'personal', personalMonthQuota, {minComplete:30}),
+    pickAwardWinners(m7d, 'dept', deptQuota),
+    true
+  );
+  html += renderAwardBlock(
+    '8月',
+    '個人月排名須達月低標門檻 30 名；部門月排名取月冠軍、月亞軍、月季軍各 1 名。',
+    pickAwardWinners(m8p, 'personal', personalMonthQuota, {minComplete:30}),
+    pickAwardWinners(m8d, 'dept', deptQuota),
+    true
+  );
 
   container.innerHTML = html || '<div class="empty">暫無公告資料</div>';
 }
@@ -1030,7 +1034,7 @@ async function init() {
     // 月份個人
     [[m6p,'m6p'],[m7p,'m7p'],[m8p,'m8p']].forEach(([data,pfx]) => {
       renderPersonalStats(data, pfx+'-stats');
-      buildPodium(data, '業務姓名', '單位', '資料完整會員數', pfx+'-podium', true, '月', {minComplete: 30, plainRankLabel: true});
+      buildPodium(data, '業務姓名', '單位', '資料完整會員數', pfx+'-podium', true, '月', {minComplete: 30, plainRankLabel: false});
       renderCheer(pfx+'-cheer');
       renderPersonalTable(data, pfx+'-tbody', pfx+'-search', true, '月');
     });
@@ -1042,8 +1046,8 @@ async function init() {
       renderDeptTable(data, pfx+'-tbody', pfx+'-search', '月');
     });
 
-    // 得獎公告
-    renderAward(award);
+    // 得獎公告：總排名 + 6/7/8月
+    renderAward({tp, td, m6p, m6d, m7p, m7d, m8p, m8d, award});
 
     // 明細
     detailAll = detail;
@@ -1061,8 +1065,8 @@ async function init() {
     document.getElementById('main-error').textContent = '資料載入失敗：' + e.message;
   }
 
-  // 每 5 分鐘自動刷新；避免每次 init 都重複建立計時器
-  if (!refreshTimer) refreshTimer = setInterval(init, 5 * 60 * 1000);
+  // 每 5 分鐘自動刷新
+  setInterval(init, 5 * 60 * 1000);
 }
 
 // 目前各主 tab 的子 tab 記憶
