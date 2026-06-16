@@ -118,6 +118,7 @@ tr.r2 .sticky-col,tr.r2 .sticky-col-2{background:#fff}
 tr.r3 .sticky-col,tr.r3 .sticky-col-2{background:#fff}
 tr:hover .sticky-col,tr:hover .sticky-col-2{background:#fff5f0}
 table{width:100%;border-collapse:collapse;font-size:13px;background:#fff}
+.tbl-wrap table{min-width:max-content}
 thead tr{background:#fff8f6}
 th{color:#c0544a;font-weight:700;padding:10px 10px;text-align:left;font-size:11px;letter-spacing:.5px;white-space:nowrap;border-bottom:1.5px solid #f0d8d4}
 td{padding:10px 10px;border-bottom:1px solid #f5f0ea;white-space:nowrap;color:#2a2018}
@@ -303,7 +304,7 @@ tr:hover td{background:#fff5f0}
     <div class="search-bar"><span class="search-icon">🔍</span><input type="text" id="m6p-search" placeholder="搜尋姓名 / 單位 / 部門..."></div>
     <div class="tbl-wrap"><table><thead><tr>
       <th style="width:44px;text-align:center">名次</th><th>區域</th><th>單位</th>
-      <th>業務姓名</th><th style="text-align:right">新增會員數</th><th style="text-align:right">資料完整會員數</th><th style="text-align:right">資料不完整會員數</th>
+      <th>業務姓名</th><th style="text-align:right">新增會員數</th><th style="text-align:right">資料完整會員數</th><th style="text-align:right">資料不完整會員數</th><th style="text-align:center">是否達標</th>
     </tr></thead><tbody id="m6p-tbody"></tbody></table></div>
   </div>
 
@@ -330,7 +331,7 @@ tr:hover td{background:#fff5f0}
     <div class="search-bar"><span class="search-icon">🔍</span><input type="text" id="m7p-search" placeholder="搜尋姓名 / 單位 / 部門..."></div>
     <div class="tbl-wrap"><table><thead><tr>
       <th style="width:44px;text-align:center">名次</th><th>區域</th><th>單位</th>
-      <th>業務姓名</th><th style="text-align:right">新增會員數</th><th style="text-align:right">資料完整會員數</th><th style="text-align:right">資料不完整會員數</th>
+      <th>業務姓名</th><th style="text-align:right">新增會員數</th><th style="text-align:right">資料完整會員數</th><th style="text-align:right">資料不完整會員數</th><th style="text-align:center">是否達標</th>
     </tr></thead><tbody id="m7p-tbody"></tbody></table></div>
   </div>
 
@@ -357,7 +358,7 @@ tr:hover td{background:#fff5f0}
     <div class="search-bar"><span class="search-icon">🔍</span><input type="text" id="m8p-search" placeholder="搜尋姓名 / 單位 / 部門..."></div>
     <div class="tbl-wrap"><table><thead><tr>
       <th style="width:44px;text-align:center">名次</th><th>區域</th><th>單位</th>
-      <th>業務姓名</th><th style="text-align:right">新增會員數</th><th style="text-align:right">資料完整會員數</th><th style="text-align:right">資料不完整會員數</th>
+      <th>業務姓名</th><th style="text-align:right">新增會員數</th><th style="text-align:right">資料完整會員數</th><th style="text-align:right">資料不完整會員數</th><th style="text-align:center">是否達標</th>
     </tr></thead><tbody id="m8p-tbody"></tbody></table></div>
   </div>
 
@@ -503,6 +504,7 @@ const CHEERS = ['冠軍就在眼前，直售全力向前！','衝刺時刻，排
 const DEPT_CHEERS = ['每一家門市，都是會員成長的關鍵戰場！','一店一戰力，一區一榮耀！','最後關鍵，冠軍就在眼前！','全台齊發力，會員新增拚高峰！'];
 
 let detailAll = [];
+let refreshTimer = null;
 
 const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzSQMZYAJdfZashXM8adxjqKY1gDqJQDWCT6oTpynVVzilx2knWL7c0CD2_TeFh7Ymw3Q/exec';
 
@@ -546,6 +548,7 @@ async function fetchAll() {
   return _cache;
 }
 
+
 async function fetchSheet(name) {
   const all = await fetchAll();
   const data = all[name];
@@ -555,53 +558,109 @@ async function fetchSheet(name) {
   return data.rows || [];
 }
 
+// ── 欄位容錯：避免 Google Sheet 欄名有空格、不同命名時抓不到 ──
+function normKey(k) {
+  return String(k || '').replace(/[\s　]/g, '').replace(/[()（）]/g, '').toLowerCase();
+}
+function getCell(row, aliases, fallback='') {
+  if (!row) return fallback;
+  const keys = Object.keys(row);
+  for (const name of aliases) {
+    if (Object.prototype.hasOwnProperty.call(row, name)) {
+      const v = row[name];
+      return (v === undefined || v === null) ? fallback : v;
+    }
+  }
+  const normalized = keys.map(k => [k, normKey(k)]);
+  for (const name of aliases) {
+    const nk = normKey(name);
+    const hit = normalized.find(([k, n]) => n === nk || n.includes(nk));
+    if (hit) {
+      const v = row[hit[0]];
+      return (v === undefined || v === null) ? fallback : v;
+    }
+  }
+  return fallback;
+}
+function numCell(row, aliases) {
+  const v = getCell(row, aliases, 0);
+  if (typeof v === 'number') return v;
+  const n = Number(String(v || '0').replace(/,/g, '').replace('%', '').trim());
+  return isNaN(n) ? 0 : n;
+}
+function getRankValue(row) {
+  return getCell(row, [
+    '排名(依據資料完整人數)', '排名(依據資料完整數據排名)', '排名(依據完整完整資料排名)',
+    '排名(依據完整資料排名)', '排名(依據達成比率)', '排名', '名次',
+    '總排名名次', '總排名', '月排名名次', '月排名',
+    '個人總排名', '個人名次', '部門總排名', '部門名次',
+    '6月排名', '六月排名', '7月排名', '七月排名', '8月排名', '八月排名'
+  ], '');
+}
+function getName(row) { return getCell(row, ['業務姓名', '姓名', '業務'], ''); }
+function getDivision(row) { return getCell(row, ['處', '部', '部門'], ''); }
+function getArea(row) { return getCell(row, ['區域', '區', '區部'], ''); }
+function getUnit(row) { return getCell(row, ['單位', '門市', '店點'], ''); }
+function getNewMembers(row) { return numCell(row, ['新增會員數', '新增會員人數', '新增會員']); }
+function getCompleteMembers(row) { return numCell(row, ['資料完整會員數', '資料完整人數', '完整會員數', '完整人數']); }
+function getIncompleteMembers(row) { return numCell(row, ['資料不完整會員數', '資料不完整人數', '不完整會員數', '不完整人數']); }
+function getTarget(row) { return getCell(row, ['年度目標', '目標', '會員目標', '目標數'], '—'); }
+function getReachRate(row) {
+  const direct = getCell(row, ['達成比率', '達成比例', '達成率', '達標比率', '達標比例'], '');
+  if (direct !== '') return direct;
+  const target = numCell(row, ['年度目標', '目標', '會員目標', '目標數']);
+  if (target > 0) return getCompleteMembers(row) / target;
+  return '';
+}
+function formatRate(v) {
+  if (v === '' || v === null || v === undefined) return '—';
+  if (typeof v === 'string' && v.includes('%')) return v;
+  const n = Number(String(v).replace(/,/g, '').replace('%', '').trim());
+  if (isNaN(n)) return v;
+  if (n <= 1) return (n * 100).toFixed(1).replace(/\.0$/, '') + '%';
+  return n.toFixed(1).replace(/\.0$/, '') + '%';
+}
+function distinctCount(data, getter) {
+  const set = new Set((data || []).map(getter).filter(v => String(v || '').trim() !== ''));
+  return set.size;
+}
+
 // ── 解析排名欄位 ──
 function parseRank(v) {
-  if (!v) return 999;
+  if (v === undefined || v === null || v === '') return 999;
   const s = String(v).trim();
   if (s.includes('冠軍')) return 1;
   if (s.includes('亞軍')) return 2;
   if (s.includes('季軍')) return 3;
-  // 「第X名」格式
-  const mth = s.match(/第(\d+)名/);
-  if (mth) return parseInt(mth[1]);
-  const n = parseInt(s);
-  return isNaN(n) ? 999 : n;
+  const mth = s.match(/第\s*(\d+)\s*名/);
+  if (mth) return parseInt(mth[1], 10);
+  const num = s.match(/\d+/);
+  if (num) return parseInt(num[0], 10);
+  const zh = {'一':1,'二':2,'三':3,'四':4,'五':5,'六':6,'七':7,'八':8,'九':9,'十':10};
+  const zhMatch = s.match(/第?([一二三四五六七八九十]+)名?/);
+  if (zhMatch) return zh[zhMatch[1]] || 999;
+  return 999;
 }
 
-// 取得排名顯示文字
-function getRankLabel(v, prefix, rankOnly=false) {
-  if (!v) return '';
-  const s = String(v).trim();
-  // 數字排名（第X名格式）
-  const nthMatch = s.match(/第(\d+)名/);
-  if (nthMatch) return '第' + nthMatch[1] + '名';
-  // 純數字
-  const numOnly = s.match(/^(\d+)$/);
-  if (numOnly) return '第' + numOnly[1] + '名';
-  
-  // rankOnly模式：只顯示名次，不顯示冠亞季文字
-  if (rankOnly) {
-    if (s.includes('冠軍')) return '第1名';
-    if (s.includes('亞軍')) return '第2名';
-    if (s.includes('季軍')) return '第3名';
-    const nth = s.match(/(\d+)/);
-    if (nth) return '第' + nth[1] + '名';
-    return '';
-  }
-  
-  // 已含總前綴
-  if (s.includes('總冠軍')) return '🏆總冠軍';
-  if (s.includes('總亞軍')) return '總亞軍';
-  if (s.includes('總季軍')) return '總季軍';
-  // 冠亞季 + prefix
+// 取得排名顯示文字：優先尊重 Google Sheet 的名次，再補上總/月冠亞季標籤
+function getRankLabel(v, prefix='') {
+  const rk = parseRank(v);
+  if (rk === 999) return '';
   const p = prefix || '';
-  if (s.includes('冠軍')) return (p ? '🏆' + p + '冠軍' : '🏆冠軍');
-  if (s.includes('亞軍')) return p + '亞軍';
-  if (s.includes('季軍')) return p + '季軍';
-  const nth = s.match(/(\d+)/);
-  if (nth) return '第' + nth[1] + '名';
-  return '';
+  if (rk === 1) return (p === '總') ? '🏆總冠軍' : (p === '月' ? '🏆月冠軍' : '🏆冠軍');
+  if (rk === 2) return (p === '總') ? '🥈總亞軍' : (p === '月' ? '🥈月亞軍' : '🥈亞軍');
+  if (rk === 3) return (p === '總') ? '🥉總季軍' : (p === '月' ? '🥉月季軍' : '🥉季軍');
+  return '第' + rk + '名';
+}
+
+// 月份個人獎低標：資料完整會員數滿 30 人才可顯示月冠亞季軍與上頒獎台
+function isMonthlyPersonalQualified(row) {
+  return getCompleteMembers(row) >= 30;
+}
+
+function getPlainRankLabel(rank) {
+  const rk = Number(rank);
+  return Number.isFinite(rk) && rk > 0 ? '第' + rk + '名' : '';
 }
 
 // 取得單位顯示（雄獅|高雄 → 高雄，雄獅 → 獅）
@@ -622,22 +681,35 @@ function parseReach(v) {
 }
 
 // ── 建立 Podium（支援同分並列）──
-function buildPodium(sorted, nameKey, unitKey, scoreKey, containerId, isPersonal, podiumPrefix='') {
+function buildPodium(sorted, nameKey, unitKey, scoreKey, containerId, isPersonal, podiumPrefix='', options={}) {
   const container = document.getElementById(containerId);
   if (!sorted.length) { container.innerHTML = '<div class="empty">暫無資料</div>'; return; }
 
-  // 依排名分組
-  const groups = [];
-  let i = 0;
-  while (i < sorted.length) {
-    const rk = parseRank(sorted[i]['排名(依據資料完整人數)'] || sorted[i]['排名(依據資料完整數據排名)'] || sorted[i]['排名(依據完整完整資料排名)'] || sorted[i]['排名'] || '');
-    if (rk > 3) break;
-    const group = { rank: rk, people: [], origIdx: rk - 1 };
-    while (i < sorted.length && parseRank(sorted[i]['排名(依據資料完整人數)'] || sorted[i]['排名(依據資料完整數據排名)'] || sorted[i]['排名(依據完整完整資料排名)'] || sorted[i]['排名'] || '') === rk) {
-      group.people.push(sorted[i]); i++;
-    }
-    groups.push(group);
+  let rows = [...sorted];
+  if (options.minComplete !== undefined) {
+    rows = rows.filter(r => getCompleteMembers(r) >= options.minComplete);
   }
+  rows.sort((a, b) => parseRank(getRankValue(a)) - parseRank(getRankValue(b)));
+
+  if (!rows.length && options.minComplete !== undefined) {
+    container.innerHTML = `<div class="empty">目前尚無資料完整會員數滿 ${options.minComplete} 人的參賽者，暫不上頒獎台</div>`;
+    return;
+  }
+
+  // 依 Google Sheet 名次分組，只取前 3 名
+  const groups = [];
+  rows.forEach(row => {
+    const rk = parseRank(getRankValue(row));
+    if (rk > 3) return;
+    let group = groups.find(g => g.rank === rk);
+    if (!group) {
+      group = { rank: rk, people: [], origIdx: rk - 1 };
+      groups.push(group);
+    }
+    group.people.push(row);
+  });
+  groups.sort((a, b) => a.rank - b.rank);
+
   if (!groups.length) { container.innerHTML = '<div class="empty">暫無頒獎台資料</div>'; return; }
 
   // 亞左冠中季右
@@ -648,13 +720,7 @@ function buildPodium(sorted, nameKey, unitKey, scoreKey, containerId, isPersonal
   const bc = ['pb1', 'pb2', 'pb3'];
   const blc = ['pb-1', 'pb-2', 'pb-3'];
   const phc = ['ph-1', 'ph-2', 'ph-3'];
-  // 從第一筆資料的排名欄位取得標籤
-  const getLbl = (grp) => {
-    const rankVal = grp.people[0]['排名(依據資料完整人數)'] || grp.people[0]['排名(依據資料完整數據排名)'] || grp.people[0]['排名(依據完整完整資料排名)'] || '';
-    const label = getRankLabel(rankVal, podiumPrefix || '');
-    if (label) return label;
-    return ['🏆冠軍','亞軍','季軍'][grp.origIdx] || '';
-  };
+  const getLbl = (grp) => options.plainRankLabel ? getPlainRankLabel(grp.rank) : getRankLabel(getRankValue(grp.people[0]), podiumPrefix || '');
 
   let html = '<div class="podium-row">';
   order.forEach(grp => {
@@ -663,15 +729,16 @@ function buildPodium(sorted, nameKey, unitKey, scoreKey, containerId, isPersonal
     const label = getLbl(grp);
     html += '<div class="rank-group"><div class="rank-group-row">';
     grp.people.forEach(p => {
-      const rawUnit = p[nameKey] || '?';
-      const init = nameKey === '單位' ? getUnitInitial(rawUnit) : rawUnit.slice(0, 1);
+      const displayName = nameKey === '單位' ? getUnit(p) : getName(p);
+      const displayUnit = unitKey === '區域' ? getArea(p) : getUnit(p);
+      const init = nameKey === '單位' ? getUnitInitial(displayName) : String(displayName || '?').slice(0, 1);
       const isCrown = oi === 0;
       const isC = oi === 0;
       html += `<div class="p-item">
         <div class="p-avatar ${rc[oi]}${multi ? ' multi' : ''}">${isCrown ? '<div class="crown">👑</div>' : ''}${init}</div>
-        <div class="p-name${isC ? ' champ' : ''}">${p[nameKey] || ''}</div>
-        <div class="p-unit">${p[unitKey] || ''}</div>
-        <div class="p-score${isC ? ' champ' : ''}">完整 ${p[scoreKey] || 0} 人</div>
+        <div class="p-name${isC ? ' champ' : ''}">${displayName || ''}</div>
+        <div class="p-unit">${displayUnit || ''}</div>
+        <div class="p-score${isC ? ' champ' : ''}">完整 ${getCompleteMembers(p) || 0} 人</div>
       </div>`;
     });
     html += '</div>';
@@ -689,92 +756,105 @@ const MONTH_MAP = {'m6':'6月','m7':'7月','m8':'8月','total':'總'};
 
 
 function renderPersonalTable(data, tbodyId, searchId, showReach=true, prefix="") {
-  const maxC = Math.max(...data.map(r => Number(r['資料完整會員數'] || 0)), 1);
+  const isMonthly = prefix === '月';
+  const hasAnyReached = data.some(r => parseReach(getCell(r, ['是否達標', '達標', '是否達成'], '')));
+  const useSequentialMonthlyRank = isMonthly && data.length > 0 && !hasAnyReached;
+
+  const getMonthlyRankText = (row, idx) => {
+    const complete = getCompleteMembers(row);
+    const sheetRank = parseRank(getRankValue(row));
+    const rk = useSequentialMonthlyRank ? (idx + 1) : sheetRank;
+
+    // 月份個人：未滿 30 人不具備月冠亞季軍資格，只顯示第X名
+    if (isMonthly && complete < 30) return getPlainRankLabel(rk);
+
+    // 月份個人：滿 30 人才顯示月冠軍／月亞軍／月季軍
+    return getRankLabel(getRankValue(row), prefix) || getPlainRankLabel(rk);
+  };
+
+  const getMonthlyRankNumber = (row, idx) => {
+    if (useSequentialMonthlyRank) return idx + 1;
+    const rk = parseRank(getRankValue(row));
+    return rk === 999 ? idx + 1 : rk;
+  };
+
   const render = (rows) => {
-    document.getElementById(tbodyId).innerHTML = rows.length ? rows.map(r => {
-      const rk = parseRank(r['排名(依據資料完整人數)'] || r['排名(依據資料完整數據排名)'] || r['排名(依據完整完整資料排名)'] || '');
+    document.getElementById(tbodyId).innerHTML = rows.length ? rows.map((r, idx) => {
+      const rankText = getMonthlyRankText(r, idx);
+      const rk = getMonthlyRankNumber(r, idx);
       const rkClass = rk === 1 ? 'r1' : rk === 2 ? 'r2' : rk === 3 ? 'r3' : '';
-      const isMonthly = prefix && prefix.includes('月');
-      const rankLabel = getRankLabel(r['排名(依據資料完整人數)'] || r['排名(依據資料完整數據排名)'] || r['排名(依據完整完整資料排名)'] || '', prefix, isMonthly);
-      const medal = '';
-      const reach = parseReach(r['是否達標'] || '');
-      const pct = Math.round(Number(r['資料完整會員數'] || 0) / maxC * 100);
+      const reach = parseReach(getCell(r, ['是否達標', '達標', '是否達成'], ''));
       return `<tr class="${rkClass}">
-        <td style="text-align:center;white-space:nowrap"><span class="r-num">${rk <= 3 ? medal : ''}${rankLabel}</span></td>
-        <td>${r['處'] || ''}</td><td>${r['區域'] || ''}</td><td>${r['單位'] || ''}</td>
-        <td style="font-weight:700;color:#1e1a16;white-space:nowrap;position:sticky;left:0;background:#fff;z-index:1">${r['業務姓名'] || ''}</td>
-        <td style="text-align:right;color:#b0a090">${r['新增會員數'] || 0}</td>
-        <td style="text-align:right"><span class="r-score">${r['資料完整會員數'] || 0}</span></td>
-        <td style="text-align:right;color:#c8b8a8">${r['資料不完整會員數'] || 0}</td>
-        ${showReach ? `<td><span class="${reach ? 'badge-reach' : 'badge-no'}">${reach ? '達標' : '未達標'}</span></td>` : ''}
+        <td style="text-align:center;white-space:nowrap"><span class="r-num">${rankText}</span></td>
+        <td>${getArea(r)}</td>
+        <td>${getUnit(r)}</td>
+        <td style="font-weight:700;color:#1e1a16;white-space:nowrap">${getName(r)}</td>
+        <td style="text-align:right;color:#b0a090">${getNewMembers(r)}</td>
+        <td style="text-align:right"><span class="r-score">${getCompleteMembers(r)}</span></td>
+        <td style="text-align:right;color:#c8b8a8">${getIncompleteMembers(r)}</td>
+        ${showReach ? `<td style="text-align:center"><span class="${reach ? 'badge-reach' : 'badge-no'}">${reach ? '達標' : '未達標'}</span></td>` : ''}
       </tr>`;
-    }).join('') : `<tr><td colspan="${showReach ? 10 : 9}" class="empty">暫無資料</td></tr>`;
+    }).join('') : `<tr><td colspan="${showReach ? 8 : 7}" class="empty">暫無資料</td></tr>`;
   };
   render(data);
   document.getElementById(searchId).oninput = function () {
     const kw = this.value.trim();
     render(kw ? data.filter(r =>
-      (r['業務姓名'] || '').includes(kw) ||
-      (r['單位'] || '').includes(kw) ||
-      (r['部'] || '').includes(kw) ||
-      (r['區域'] || '').includes(kw) ||
-      (r['處'] || '').includes(kw)
+      getName(r).includes(kw) ||
+      getUnit(r).includes(kw) ||
+      getArea(r).includes(kw)
     ) : data);
   };
 }
 
 // ── 渲染部門排名表 ──
 function renderDeptTable(data, tbodyId, searchId, prefix='') {
-  const maxC = Math.max(...data.map(r => Number(r['資料完整會員數'] || 0)), 1);
   const render = (rows) => {
     document.getElementById(tbodyId).innerHTML = rows.length ? rows.map(r => {
-      const rk = parseRank(r['排名(依據資料完整人數)'] || r['排名(依據資料完整數據排名)'] || r['排名(依據完整完整資料排名)'] || '');
+      const rk = parseRank(getRankValue(r));
       const rkClass = rk === 1 ? 'r1' : rk === 2 ? 'r2' : rk === 3 ? 'r3' : '';
-      const isMonthly = prefix && prefix.includes('月');
-      const rankLabel = getRankLabel(r['排名(依據資料完整人數)'] || r['排名(依據資料完整數據排名)'] || r['排名(依據完整完整資料排名)'] || '', prefix, isMonthly);
-      const medal = '';
-      const reach = parseReach(r['是否達標'] || '');
-      const pct = Math.round(Number(r['資料完整會員數'] || 0) / maxC * 100);
-      const target = r['年度目標'] || '—';
-      const rate = r['達成比率'] || '—';
+      const rankLabel = getRankLabel(getRankValue(r), prefix);
+      const target = getTarget(r);
+      const rate = formatRate(getReachRate(r));
       return `<tr class="${rkClass}">
-        <td style="text-align:center;white-space:nowrap"><span class="r-num">${rk <= 3 ? medal : ''}${rankLabel}</span></td>
-        <td>${r['區域'] || ''}</td><td class="r-name">${r['單位'] || ''}</td>
+        <td style="text-align:center;white-space:nowrap"><span class="r-num">${rankLabel}</span></td>
+        <td>${getArea(r)}</td><td class="r-name">${getUnit(r)}</td>
         <td style="text-align:right;color:#b0a090">${target}</td>
-        <td style="text-align:right;color:#b0a090">${r['新增會員數'] || 0}</td>
-        <td style="text-align:right"><span class="r-score">${r['資料完整會員數'] || 0}</span></td>
-        <td style="text-align:right;color:#c8b8a8">${r['資料不完整會員數'] || 0}</td>
+        <td style="text-align:right;color:#b0a090">${getNewMembers(r)}</td>
+        <td style="text-align:right"><span class="r-score">${getCompleteMembers(r)}</span></td>
+        <td style="text-align:right;color:#c8b8a8">${getIncompleteMembers(r)}</td>
         <td style="text-align:right;font-weight:700;color:#c0544a">${rate}</td>
       </tr>`;
-    }).join('') : '<tr><td colspan="10" class="empty">暫無資料</td></tr>';
+    }).join('') : '<tr><td colspan="8" class="empty">暫無資料</td></tr>';
   };
   render(data);
   document.getElementById(searchId).oninput = function () {
     const kw = this.value.trim();
     render(kw ? data.filter(r =>
-      (r['單位'] || '').includes(kw) ||
-      (r['部'] || '').includes(kw) ||
-      (r['區域'] || '').includes(kw)
+      getUnit(r).includes(kw) ||
+      getDivision(r).includes(kw) ||
+      getArea(r).includes(kw)
     ) : data);
   };
 }
 
 // ── 渲染統計卡片（個人）──
 function renderPersonalStats(data, statsId, isTotal=false) {
-  const reach = data.filter(r => parseReach(r['是否達標'] || '')).length;
+  const reach = data.filter(r => parseReach(getCell(r, ['是否達標', '達標', '是否達成'], ''))).length;
+  const peopleCount = distinctCount(data, getName);
   document.getElementById(statsId).innerHTML = `
-    <div class="stat-card"><div class="stat-val">${data.length}</div><div class="stat-lbl">參賽業務</div></div>
-    <div class="stat-card"><div class="stat-val">${data.reduce((a, r) => a + Number(r['新增會員數'] || 0), 0)}</div><div class="stat-lbl">總新增會員</div></div>
-    <div class="stat-card"><div class="stat-val">${data.reduce((a, r) => a + Number(r['資料完整會員數'] || 0), 0)}</div><div class="stat-lbl">資料完整</div></div>
+    <div class="stat-card"><div class="stat-val">${peopleCount}</div><div class="stat-lbl">參賽業務</div></div>
+    <div class="stat-card"><div class="stat-val">${data.reduce((a, r) => a + getNewMembers(r), 0)}</div><div class="stat-lbl">總新增會員</div></div>
+    <div class="stat-card"><div class="stat-val">${data.reduce((a, r) => a + getCompleteMembers(r), 0)}</div><div class="stat-lbl">資料完整</div></div>
     ${!isTotal ? `<div class="stat-card"><div class="stat-val">${reach}</div><div class="stat-lbl">達標人數</div></div>` : `<div class="stat-card"><div class="stat-val" id="tp-reach-val">—</div><div class="stat-lbl">三月全達標</div></div>`}`;
 }
 
 // ── 計算總達標人數（三個月都參加且都達標）──
 function calcTotalReach(m6p, m7p, m8p) {
   const getReached = (data) => new Set(
-    data.filter(r => parseReach(r['是否達標'] || '')).map(r => r['業務姓名'] || '')
+    data.filter(r => parseReach(getCell(r, ['是否達標', '達標', '是否達成'], ''))).map(r => getName(r))
   );
-  const getAll = (data) => new Set(data.map(r => r['業務姓名'] || ''));
+  const getAll = (data) => new Set(data.map(r => getName(r)));
   
   const r6 = getReached(m6p), r7 = getReached(m7p), r8 = getReached(m8p);
   const a6 = getAll(m6p), a7 = getAll(m7p), a8 = getAll(m8p);
@@ -788,11 +868,10 @@ function calcTotalReach(m6p, m7p, m8p) {
 
 // ── 渲染統計卡片（部門）──
 function renderDeptStats(data, statsId) {
-  const reach = data.filter(r => parseReach(r['是否達標'] || '')).length;
+  const unitCount = distinctCount(data, getUnit);
   document.getElementById(statsId).innerHTML = `
-    <div class="stat-card"><div class="stat-val">${data.length}</div><div class="stat-lbl">參賽單位</div></div>
-    <div class="stat-card"><div class="stat-val">${data.reduce((a, r) => a + Number(r['新增會員數'] || 0), 0)}</div><div class="stat-lbl">總新增會員</div></div>
-    <div class="stat-card"><div class="stat-val">${reach}</div><div class="stat-lbl">達標單位</div></div>`;
+    <div class="stat-card"><div class="stat-val">${unitCount}</div><div class="stat-lbl">參賽單位</div></div>
+    <div class="stat-card"><div class="stat-val">${data.reduce((a, r) => a + getNewMembers(r), 0)}</div><div class="stat-lbl">總新增會員</div></div>`;
 }
 
 // ── 渲染加油標語 ──
@@ -902,7 +981,7 @@ function renderDetail(data) {
       <td style="white-space:nowrap">${r['會員狀態'] || ''}</td>
     </tr>`;
   }).join('') : '<tr><td colspan="15" class="empty">暫無資料</td></tr>';
-  document.getElementById('detail-count'.textContent = `共 ${data.length} 筆`;
+  document.getElementById('detail-count').textContent = `共 ${data.length} 筆`;
 }
 
 
@@ -931,7 +1010,7 @@ async function init() {
 
     // Header 統計
     const allPersonal = [...tp, ...m6p, ...m7p, ...m8p];
-    document.getElementById('hdr-total').textContent = tp.length || '—';
+    document.getElementById('hdr-total').textContent = distinctCount(tp, getName) || '—';
     
     
     
@@ -951,16 +1030,16 @@ async function init() {
     // 月份個人
     [[m6p,'m6p'],[m7p,'m7p'],[m8p,'m8p']].forEach(([data,pfx]) => {
       renderPersonalStats(data, pfx+'-stats');
-      buildPodium(data, '業務姓名', '單位', '資料完整會員數', pfx+'-podium', true);
+      buildPodium(data, '業務姓名', '單位', '資料完整會員數', pfx+'-podium', true, '月', {minComplete: 30, plainRankLabel: true});
       renderCheer(pfx+'-cheer');
-      renderPersonalTable(data, pfx+'-tbody', pfx+'-search');
+      renderPersonalTable(data, pfx+'-tbody', pfx+'-search', true, '月');
     });
 
     // 月份部門
     [[m6d,'m6d'],[m7d,'m7d'],[m8d,'m8d']].forEach(([data,pfx]) => {
       renderDeptStats(data, pfx+'-stats');
-      buildPodium(data, '單位', '區域', '資料完整會員數', pfx+'-podium', false);
-      renderDeptTable(data, pfx+'-tbody', pfx+'-search');
+      buildPodium(data, '單位', '區域', '資料完整會員數', pfx+'-podium', false, '月');
+      renderDeptTable(data, pfx+'-tbody', pfx+'-search', '月');
     });
 
     // 得獎公告
@@ -982,8 +1061,8 @@ async function init() {
     document.getElementById('main-error').textContent = '資料載入失敗：' + e.message;
   }
 
-  // 每 5 分鐘自動刷新
-  setInterval(init, 5 * 60 * 1000);
+  // 每 5 分鐘自動刷新；避免每次 init 都重複建立計時器
+  if (!refreshTimer) refreshTimer = setInterval(init, 5 * 60 * 1000);
 }
 
 // 目前各主 tab 的子 tab 記憶
