@@ -4,8 +4,10 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>CRM 直售會員競賽戰報</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&display=swap" rel="stylesheet">
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&display=swap');
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:'Noto Sans TC',sans-serif;background:#f7f5f2;color:#1e1a16;min-height:100vh;overflow-x:hidden}
 
@@ -237,17 +239,17 @@ tr:hover td{background:#fff5f0}
 
 <div class="nav-bar">
   <div class="nav-inner">
-    <button class="nav-btn active" onclick="switchMainTab('personal',this)">個人排名</button>
+    <button class="nav-btn" onclick="switchMainTab('personal',this)">個人排名</button>
     <button class="nav-btn" onclick="switchMainTab('dept',this)">部門排名</button>
     <div class="nav-sep"></div>
     <button class="nav-btn" onclick="switchMainTab('award',this)">得獎公告</button>
     <button class="nav-btn" onclick="switchMainTab('detail',this)">資料不完整名單</button>
-    <button class="nav-btn" onclick="switchMainTab('rules',this)">比賽規則</button>
+    <button class="nav-btn active" onclick="switchMainTab('rules',this)">比賽規則</button>
   </div>
 </div>
 
 <!-- 個人排名子選單 -->
-<div class="sub-bar" id="sub-personal">
+<div class="sub-bar" id="sub-personal" style="display:none">
   <span class="sub-label">期間</span>
   <button class="sub-btn active" onclick="switchSubTab('personal','total-personal',this)">總排名</button>
   <button class="sub-btn" onclick="switchSubTab('personal','m6-personal',this)">6月</button>
@@ -264,11 +266,11 @@ tr:hover td{background:#fff5f0}
 </div>
 
 <div class="content">
-  <div id="main-loading" class="loading">資料載入中，請稍候...</div>
+  <div id="main-loading" class="loading" style="display:none">資料載入中，請稍候...</div>
   <div id="main-error" class="error-box" style="display:none"></div>
 
   <!-- 個人總排名 -->
-  <div id="tab-total-personal" class="tab-pane active">
+  <div id="tab-total-personal" class="tab-pane">
     <div class="stat-row stat-row-4" id="tp-stats"></div>
     <div class="sect-label">總排名頒獎台</div>
     <div class="podium-section" id="tp-podium"></div>
@@ -411,7 +413,7 @@ tr:hover td{background:#fff5f0}
   </div>
 
   <!-- 比賽規則 -->
-  <div id="tab-rules" class="tab-pane">
+  <div id="tab-rules" class="tab-pane active">
     <div class="rules-wrap">
       <div class="rules-hero">
         <div class="rules-hero-title">2026 CRM 會員競賽</div>
@@ -495,7 +497,7 @@ tr:hover td{background:#fff5f0}
   </div>
 </div>
 
-<div class="wr-footer">CRM-Vivian 製作開發 S13-IT蔡奕全協作資料提供 ✦ 每日自動更新 ✦ 問題請聯繫 #9172</div>
+<div class="wr-footer">CRM-Vivian 製作開發 ✦ 每日 09:30 前更新 ✦ 問題請聯繫 #9172</div>
 
 <script>
 const SHEETS_ID = '1yKDbSDiFa3GJLzgHbrMWw5dr3Nj0LktZLGE9YcYsJIw';
@@ -510,19 +512,36 @@ const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzSQMZYAJdfZash
 // 快取：一次抓所有工作表
 let _cache = null;
 
-// ── 快取：每天8:20後才更新，同一天重開瞬間顯示 ──
+// ── 快取：資料實際每天 8:00 換版；畫面對外統一說 9:30 前更新 ──
+function getDataVersion() {
+  const now = new Date();
+  const versionDate = new Date(now);
+  if (now.getHours() < 8) versionDate.setDate(versionDate.getDate() - 1);
+  const y = versionDate.getFullYear();
+  const m = String(versionDate.getMonth() + 1).padStart(2, '0');
+  const d = String(versionDate.getDate()).padStart(2, '0');
+  return `${y}${m}${d}`;
+}
+function formatDataVersion() {
+  const v = getDataVersion();
+  return `${v.slice(0,4)}/${v.slice(4,6)}/${v.slice(6,8)}`;
+}
+function getCacheKey() {
+  return `wr_all_${getDataVersion()}`;
+}
 function getCacheExpiry() {
   const now = new Date();
   const expiry = new Date(now);
-  expiry.setHours(8, 20, 0, 0);
+  expiry.setHours(8, 0, 0, 0);
   if (now >= expiry) expiry.setDate(expiry.getDate() + 1);
   return expiry.getTime();
 }
 function getCache() {
   try {
-    const exp = parseInt(sessionStorage.getItem('wr_exp') || '0');
+    const key = getCacheKey();
+    const exp = parseInt(localStorage.getItem(`${key}_exp`) || '0', 10);
     if (Date.now() < exp) {
-      const d = sessionStorage.getItem('wr_d');
+      const d = localStorage.getItem(key);
       if (d) return JSON.parse(d);
     }
   } catch(e) {}
@@ -530,15 +549,18 @@ function getCache() {
 }
 function setCache(data) {
   try {
-    sessionStorage.setItem('wr_d', JSON.stringify(data));
-    sessionStorage.setItem('wr_exp', getCacheExpiry().toString());
-  } catch(e) {}
+    const key = getCacheKey();
+    localStorage.setItem(key, JSON.stringify(data));
+    localStorage.setItem(`${key}_exp`, getCacheExpiry().toString());
+  } catch(e) {
+    console.warn('資料快取失敗，可能是資料量較大；不影響頁面使用', e);
+  }
 }
 async function fetchAll() {
   if (_cache) return _cache;
   const cached = getCache();
   if (cached) { _cache = cached; return _cache; }
-  const url = `${APPS_SCRIPT_URL}?all=1&t=${Date.now()}`;
+  const url = `${APPS_SCRIPT_URL}?all=1&v=${getDataVersion()}`;
   const res = await fetch(url);
   const json = await res.json();
   if (json.error) throw new Error(json.error);
@@ -696,7 +718,7 @@ function buildPodium(sorted, nameKey, unitKey, scoreKey, containerId, isPersonal
   });
   groups.sort((a, b) => a.rank - b.rank);
 
-  if (!groups.length) { container.innerHTML = '<div class="empty">暫無頒獎台資料</div>'; return; }
+  if (!groups.length) { container.innerHTML = `<div class="empty">${options.minComplete ? '無人達30門檻標準，無頒獎台資料' : '暫無頒獎台資料'}</div>`; return; }
 
   // 亞左冠中季右
   const order = groups.length >= 3 ? [groups[1], groups[0], groups[2]] :
@@ -990,83 +1012,167 @@ function renderDetail(data) {
 
 
 // ── 主程式 ──
-async function init() {
+function getSheetRowsFromAll(all, name) {
+  const data = all && all[name];
+  if (!data) return [];
+  if (data.error) throw new Error(data.error);
+  if (data.raw) return data.rows || [];
+  return data.rows || [];
+}
+
+let _refreshTimerStarted = false;
+
+function setInitialFastView() {
+  document.getElementById('main-loading').style.display = 'none';
+  document.getElementById('main-error').style.display = 'none';
+  document.getElementById('update-time').textContent =
+    `資料每日 09:30 前更新｜同日資料固定後不再異動｜資料版本：${formatDataVersion()}`;
+
+  const loadingCard = `
+    <div class="stat-card"><div class="stat-val">—</div><div class="stat-lbl">資料載入中</div></div>
+    <div class="stat-card"><div class="stat-val">—</div><div class="stat-lbl">總新增會員</div></div>
+    <div class="stat-card"><div class="stat-val">—</div><div class="stat-lbl">資料完整</div></div>
+    <div class="stat-card"><div class="stat-val">—</div><div class="stat-lbl">三月全達標</div></div>`;
+  if (!document.getElementById('tp-stats').innerHTML.trim()) document.getElementById('tp-stats').innerHTML = loadingCard;
+  if (!document.getElementById('tp-podium').innerHTML.trim()) document.getElementById('tp-podium').innerHTML = '<div class="empty">個人總排名資料載入中...</div>';
+  if (!document.getElementById('tp-tbody').innerHTML.trim()) document.getElementById('tp-tbody').innerHTML = '<tr><td colspan="7" class="empty">個人總排名資料載入中...</td></tr>';
+}
+
+function renderTotalPersonalFirst(tp) {
+  document.getElementById('hdr-total').textContent = distinctCount(tp, getName) || '—';
+  renderPersonalStats(tp, 'tp-stats', true);
+  buildPodium(tp, '業務姓名', '單位', '資料完整會員數', 'tp-podium', true, '總');
+  renderCheer('tp-cheer');
+  renderPersonalTable(tp, 'tp-tbody', 'tp-search', false, '總');
+}
+
+function renderRemainingPages(all, tp) {
   try {
-    document.getElementById('main-loading').style.display = 'block';
+    const td     = getSheetRowsFromAll(all, '06/01-08/31部門戰報');
+    const m6p    = getSheetRowsFromAll(all, '6月戰報');
+    const m6d    = getSheetRowsFromAll(all, '6月部門戰報');
+    const m7p    = getSheetRowsFromAll(all, '7月戰報');
+    const m7d    = getSheetRowsFromAll(all, '7月部門戰報');
+    const m8p    = getSheetRowsFromAll(all, '8月戰報');
+    const m8d    = getSheetRowsFromAll(all, '8月部門戰報');
+    const award  = getSheetRowsFromAll(all, '得獎公告');
+    const detail = getSheetRowsFromAll(all, '已加入會員資料不完整清單');
 
-    // 一次請求取得所有資料（避免 Too many simultaneous invocations）
-    await fetchAll();
-    const tp     = await fetchSheet('06/01-08/31總冠軍戰報');
-    const td     = await fetchSheet('06/01-08/31部門戰報');
-    const m6p    = await fetchSheet('6月戰報');
-    const m6d    = await fetchSheet('6月部門戰報');
-    const m7p    = await fetchSheet('7月戰報');
-    const m7d    = await fetchSheet('7月部門戰報');
-    const m8p    = await fetchSheet('8月戰報');
-    const m8d    = await fetchSheet('8月部門戰報');
-    const award  = await fetchSheet('得獎公告');
-    const detail = await fetchSheet('已加入會員資料不完整清單');
+    const jobs = [
+      // 1. 個人總冠軍已在 renderTotalPersonalFirst(tp) 優先完成
+      {
+        label: '個人6月',
+        run: () => {
+          renderPersonalStats(m6p, 'm6p-stats');
+          buildPodium(m6p, '業務姓名', '單位', '資料完整會員數', 'm6p-podium', true, '月', {minComplete: 30, plainRankLabel: false});
+          renderCheer('m6p-cheer');
+          renderPersonalTable(m6p, 'm6p-tbody', 'm6p-search', true, '月');
+        }
+      },
+      {
+        label: '部門總冠軍',
+        run: () => {
+          renderDeptStats(td, 'td-stats');
+          buildPodium(td, '單位', '區域', '資料完整會員數', 'td-podium', false, '總');
+          renderDeptTable(td, 'td-tbody', 'td-search', '總');
+        }
+      },
+      {
+        label: '部門6月',
+        run: () => {
+          renderDeptStats(m6d, 'm6d-stats');
+          buildPodium(m6d, '單位', '區域', '資料完整會員數', 'm6d-podium', false, '月');
+          renderDeptTable(m6d, 'm6d-tbody', 'm6d-search', '月');
+        }
+      },
+      {
+        label: '個人7月',
+        run: () => {
+          renderPersonalStats(m7p, 'm7p-stats');
+          buildPodium(m7p, '業務姓名', '單位', '資料完整會員數', 'm7p-podium', true, '月', {minComplete: 30, plainRankLabel: false});
+          renderCheer('m7p-cheer');
+          renderPersonalTable(m7p, 'm7p-tbody', 'm7p-search', true, '月');
+        }
+      },
+      {
+        label: '部門7月',
+        run: () => {
+          renderDeptStats(m7d, 'm7d-stats');
+          buildPodium(m7d, '單位', '區域', '資料完整會員數', 'm7d-podium', false, '月');
+          renderDeptTable(m7d, 'm7d-tbody', 'm7d-search', '月');
+        }
+      },
+      {
+        label: '個人8月',
+        run: () => {
+          renderPersonalStats(m8p, 'm8p-stats');
+          buildPodium(m8p, '業務姓名', '單位', '資料完整會員數', 'm8p-podium', true, '月', {minComplete: 30, plainRankLabel: false});
+          renderCheer('m8p-cheer');
+          renderPersonalTable(m8p, 'm8p-tbody', 'm8p-search', true, '月');
+        }
+      },
+      {
+        label: '部門8月',
+        run: () => {
+          renderDeptStats(m8d, 'm8d-stats');
+          buildPodium(m8d, '單位', '區域', '資料完整會員數', 'm8d-podium', false, '月');
+          renderDeptTable(m8d, 'm8d-tbody', 'm8d-search', '月');
+        }
+      },
+      {
+        label: '得獎公告',
+        run: () => renderAward({tp, td, m6p, m6d, m7p, m7d, m8p, m8d, award})
+      },
+      {
+        label: '資料不完整名單',
+        run: () => {
+          detailAll = detail;
+          renderDetail(detail);
+          document.getElementById('detail-search').oninput = function() {
+            const kw = this.value.trim();
+            renderDetail(kw ? detailAll.filter(r =>
+              (r['業務姓名']||'').includes(kw)||(r['單位']||'').includes(kw)||(r['部']||'').includes(kw)
+            ) : detailAll);
+          };
+        }
+      }
+    ];
 
-    document.getElementById('main-loading').style.display = 'none';
-
-    // 更新時間
-    document.getElementById('update-time').textContent = '更新時間：' + new Date().toLocaleString('zh-TW', { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' });
-
-    // Header 統計
-    const allPersonal = [...tp, ...m6p, ...m7p, ...m8p];
-    document.getElementById('hdr-total').textContent = distinctCount(tp, getName) || '—';
-    
-    
-    
-    
-
-    // 總排名個人
-    renderPersonalStats(tp, 'tp-stats', true);
-    buildPodium(tp, '業務姓名', '單位', '資料完整會員數', 'tp-podium', true, '總');
-    renderCheer('tp-cheer');
-    renderPersonalTable(tp, 'tp-tbody', 'tp-search', false, '總');
-
-    // 總排名部門
-    renderDeptStats(td, 'td-stats');
-    buildPodium(td, '單位', '區域', '資料完整會員數', 'td-podium', false, '總');
-    renderDeptTable(td, 'td-tbody', 'td-search', '總');
-
-    // 月份個人
-    [[m6p,'m6p'],[m7p,'m7p'],[m8p,'m8p']].forEach(([data,pfx]) => {
-      renderPersonalStats(data, pfx+'-stats');
-      buildPodium(data, '業務姓名', '單位', '資料完整會員數', pfx+'-podium', true, '月', {minComplete: 30, plainRankLabel: false});
-      renderCheer(pfx+'-cheer');
-      renderPersonalTable(data, pfx+'-tbody', pfx+'-search', true, '月');
+    // 依指定順序分批渲染，避免一次塞太多 DOM 讓畫面卡住。
+    jobs.forEach((job, idx) => {
+      setTimeout(() => {
+        try { job.run(); }
+        catch (err) { console.error(job.label + ' 載入失敗：', err); }
+      }, idx * 120);
     });
-
-    // 月份部門
-    [[m6d,'m6d'],[m7d,'m7d'],[m8d,'m8d']].forEach(([data,pfx]) => {
-      renderDeptStats(data, pfx+'-stats');
-      buildPodium(data, '單位', '區域', '資料完整會員數', pfx+'-podium', false, '月');
-      renderDeptTable(data, pfx+'-tbody', pfx+'-search', '月');
-    });
-
-    // 得獎公告：總排名 + 6/7/8月
-    renderAward({tp, td, m6p, m6d, m7p, m7d, m8p, m8d, award});
-
-    // 明細
-    detailAll = detail;
-    renderDetail(detail);
-    document.getElementById('detail-search').oninput = function() {
-      const kw = this.value.trim();
-      renderDetail(kw ? detailAll.filter(r =>
-        (r['業務姓名']||'').includes(kw)||(r['單位']||'').includes(kw)||(r['部']||'').includes(kw)
-      ) : detailAll);
-    };
 
   } catch(e) {
-    document.getElementById('main-loading').style.display = 'none';
+    console.error('其他頁面資料載入失敗：', e);
+  }
+}
+
+async function init() {
+  setInitialFastView();
+
+  try {
+    const all = await fetchAll();
+
+    // 第一優先：個人總冠軍 / 個人總排名
+    const tp = getSheetRowsFromAll(all, '06/01-08/31總冠軍戰報');
+    renderTotalPersonalFirst(tp);
+
+    // 第二階段：其他頁面背景分批渲染，避免第一畫面卡住
+    renderRemainingPages(all, tp);
+
+  } catch(e) {
     document.getElementById('main-error').style.display = 'block';
     document.getElementById('main-error').textContent = '資料載入失敗：' + e.message;
   }
 
-  // 每 5 分鐘自動刷新
-  setInterval(init, 5 * 60 * 1000);
+  if (!_refreshTimerStarted) {
+    _refreshTimerStarted = true;
+    setInterval(init, 5 * 60 * 1000);
+  }
 }
 
 // 目前各主 tab 的子 tab 記憶
