@@ -509,6 +509,9 @@ let detailAll = [];
 
 const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzSQMZYAJdfZashXM8adxjqKY1gDqJQDWCT6oTpynVVzilx2knWL7c0CD2_TeFh7Ymw3Q/exec';
 
+// 手動修正資料時，重新上傳 HTML 前請改這個版本號；版本號一變，所有使用者會重新抓 Google Sheet，不吃舊快取。
+const DATA_REVISION = '20260617_rules_first_static_first';
+
 // 快取：一次抓所有工作表
 let _cache = null;
 
@@ -527,7 +530,7 @@ function formatDataVersion() {
   return `${v.slice(0,4)}/${v.slice(4,6)}/${v.slice(6,8)}`;
 }
 function getCacheKey() {
-  return `wr_all_${getDataVersion()}`;
+  return `wr_all_${getDataVersion()}_${DATA_REVISION}`;
 }
 function getCacheExpiry() {
   const now = new Date();
@@ -552,15 +555,23 @@ function setCache(data) {
     const key = getCacheKey();
     localStorage.setItem(key, JSON.stringify(data));
     localStorage.setItem(`${key}_exp`, getCacheExpiry().toString());
+    cleanupOldCaches(key);
   } catch(e) {
     console.warn('資料快取失敗，可能是資料量較大；不影響頁面使用', e);
   }
+}
+function cleanupOldCaches(currentKey) {
+  try {
+    Object.keys(localStorage).forEach(k => {
+      if (k.startsWith('wr_all_') && !k.startsWith(currentKey)) localStorage.removeItem(k);
+    });
+  } catch(e) {}
 }
 async function fetchAll() {
   if (_cache) return _cache;
   const cached = getCache();
   if (cached) { _cache = cached; return _cache; }
-  const url = `${APPS_SCRIPT_URL}?all=1&v=${getDataVersion()}`;
+  const url = `${APPS_SCRIPT_URL}?all=1&v=${getDataVersion()}&rev=${DATA_REVISION}`;
   const res = await fetch(url);
   const json = await res.json();
   if (json.error) throw new Error(json.error);
