@@ -497,7 +497,7 @@ tr:hover td{background:#fff5f0}
   </div>
 </div>
 
-<div class="wr-footer">CRM-Vivian 製作開發 ✦ 每日 09:30 前更新 ✦ 問題請聯繫 #9172</div>
+<div class="wr-footer">CRM-Vivian 製作開發 S13-IT蔡奕全協作資料提供 ✦ 每日自動更新 ✦ 問題請聯繫 #9172</div>
 
 <script>
 const SHEETS_ID = '1yKDbSDiFa3GJLzgHbrMWw5dr3Nj0LktZLGE9YcYsJIw';
@@ -535,7 +535,7 @@ function getCacheKey() {
 function getCacheExpiry() {
   const now = new Date();
   const expiry = new Date(now);
-  expiry.setHours(8, 0, 0, 0);
+  expiry.setHours(9, 25, 0, 0);
   if (now >= expiry) expiry.setDate(expiry.getDate() + 1);
   return expiry.getTime();
 }
@@ -757,7 +757,7 @@ function buildPodium(sorted, nameKey, unitKey, scoreKey, containerId, isPersonal
         <div class="p-avatar ${rc[oi]}${multi ? ' multi' : ''}">${isCrown ? '<div class="crown">👑</div>' : ''}${init}</div>
         <div class="p-name${isC ? ' champ' : ''}">${displayName || ''}</div>
         <div class="p-unit">${displayUnit || ''}</div>
-        <div class="p-score${isC ? ' champ' : ''}">完整 ${getCompleteMembers(p) || 0} 人</div>
+        <div class="p-score${isC ? ' champ' : ''}">${isPersonal ? '完整 ' + (getCompleteMembers(p) || 0) + ' 人' : (formatRate(getReachRate(p)) || '—')}</div>
       </div>`;
     });
     html += '</div>';
@@ -898,11 +898,13 @@ function makeAwardRow(item, title, vacantText='從缺') {
   }
   const name = item.type === 'dept' ? getUnit(item.row) : getName(item.row);
   const unit = item.type === 'dept' ? getArea(item.row) : getUnit(item.row);
-  const count = getCompleteMembers(item.row);
+  const countHtml = item.type === 'dept'
+    ? `${formatRate(getReachRate(item.row)) || '—'}<span>達成率</span>`
+    : `${getCompleteMembers(item.row) || 0}<span>人</span>`;
   return `<div class="award-row">
     <div class="award-medal">${medal}</div>
     <div class="award-info">${tag}<div class="award-name">${name || ''}</div><div class="award-unit">${unit || ''}</div></div>
-    <div class="award-count">${count || 0}<span>人</span></div>
+    <div class="award-count">${countHtml}</div>
   </div>`;
 }
 
@@ -915,13 +917,31 @@ function pickAwardWinners(data, type, quotas, options={}) {
       if (rankDiff !== 0) return rankDiff;
       return getCompleteMembers(b) - getCompleteMembers(a);
     });
+
+  // 最少名額：冠軍1、亞軍2、季軍3，同完成數則延伸
+  const minQuota = {1: 1, 2: 2, 3: 3};
   const result = {1: [], 2: [], 3: []};
+
   rows.forEach(row => {
     const rk = parseRank(getRankValue(row));
     if (![1, 2, 3].includes(rk)) return;
-    const limit = quotas[rk] || 0;
-    if (result[rk].length < limit) result[rk].push({row, type});
+
+    const min = minQuota[rk];
+    const current = result[rk];
+
+    if (current.length < min) {
+      // 還沒達到最少名額，直接加入
+      current.push({row, type});
+    } else {
+      // 已達最少名額，只有同完成數才繼續加入
+      const lastScore = getCompleteMembers(current[current.length - 1].row);
+      const thisScore = getCompleteMembers(row);
+      if (thisScore === lastScore && lastScore > 0) {
+        current.push({row, type});
+      }
+    }
   });
+
   return result;
 }
 
@@ -929,21 +949,32 @@ function renderAwardBlock(title, note, personalWinners, deptWinners, isMonthly=f
   const titles = isMonthly
     ? {1:'🏆月冠軍', 2:'🥈月亞軍', 3:'🥉月季軍'}
     : {1:'🏆總冠軍', 2:'🥈總亞軍', 3:'🥉總季軍'};
-  const pQuota = {1:1, 2:2, 3:3};
   const vacantMonthly = '未達月低標 30 人，從缺';
   let html = `<div class="award-block"><div class="award-block-title">${title}</div>`;
   if (note) html += `<div style="font-size:11px;color:#b0a090;text-align:center;margin:-4px 0 14px;line-height:1.6">${note}</div>`;
 
+  // 個人排名：有幾人並列就顯示幾行
   html += `<div style="font-size:11px;font-weight:700;letter-spacing:2px;color:#c0544a;margin:8px 0 6px">個人排名</div>`;
   [1, 2, 3].forEach(rk => {
     const people = personalWinners[rk] || [];
-    for (let i = 0; i < pQuota[rk]; i++) html += makeAwardRow(people[i], titles[rk], isMonthly ? vacantMonthly : '尚未公告');
+    if (people.length === 0) {
+      // 無人：顯示從缺
+      html += makeAwardRow(null, titles[rk], isMonthly ? vacantMonthly : '尚未公告');
+    } else {
+      // 有幾人就顯示幾行（並列全部列出）
+      people.forEach(p => html += makeAwardRow(p, titles[rk], isMonthly ? vacantMonthly : '尚未公告'));
+    }
   });
 
+  // 部門排名：有幾人並列就顯示幾行
   html += `<div style="font-size:11px;font-weight:700;letter-spacing:2px;color:#c0544a;margin:16px 0 6px">部門排名</div>`;
   [1, 2, 3].forEach(rk => {
     const units = deptWinners[rk] || [];
-    html += makeAwardRow(units[0], titles[rk], '尚未公告');
+    if (units.length === 0) {
+      html += makeAwardRow(null, titles[rk], '尚未公告');
+    } else {
+      units.forEach(u => html += makeAwardRow(u, titles[rk], '尚未公告'));
+    }
   });
   html += '</div>';
   return html;
